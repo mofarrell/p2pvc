@@ -15,9 +15,9 @@ typedef struct {
 
 int p2p_connect(char *server, char *port, connection_t *con);
 
-int p2p_send(connection_t *con, void *buf, size_t buflen);
+int p2p_send(connection_t *con, const void *buf, size_t buflen);
 
-int p2p_broadcast(connection_t **cons, size_t *conslen, pthread_mutex_t *consmutex, void *buf, size_t buflen);
+int p2p_broadcast(connection_t **cons, size_t *conslen, pthread_mutex_t *consmutex, const void *buf, size_t buflen);
 
 int p2p_listener(connection_t **cons, size_t *conslen,
                  pthread_mutex_t *consmutex,

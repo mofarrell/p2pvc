@@ -1,6 +1,7 @@
 /* @file p2plib.c
  * @brief Implements p2plib.
  */
+
 #include <stdio.h>
 #include <string.h>
 #include <p2plib.h>
@@ -11,6 +12,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <stdlib.h>
+#include <netinet/in.h>
 
 #define MAX_PACKET_SIZE   4096
 #define UDP_FLAGS         0
@@ -119,7 +121,7 @@ int p2p_init(int port, int *sockfd) {
  * @param buflen The length of the data to send.
  * @return Negative value on error, 0 on success.
  */
-int p2p_send(connection_t *con, void *buf, size_t buflen) {
+int p2p_send(connection_t *con, const void *buf, size_t buflen) {
   return sendto(con->socket, buf, buflen, UDP_FLAGS, (struct sockaddr *)&con->addr, con->addr_len);
 }
 
@@ -131,7 +133,7 @@ int p2p_send(connection_t *con, void *buf, size_t buflen) {
  * @param buflen The length of the data to send.
  * @return Negative value on error, 0 on success.
  */
-int p2p_broadcast(connection_t **cons, size_t *conslen, pthread_mutex_t *consmutex, void *buf, size_t buflen) {
+int p2p_broadcast(connection_t **cons, size_t *conslen, pthread_mutex_t *consmutex, const void *buf, size_t buflen) {
   if(consmutex) {
     pthread_mutex_lock(consmutex);
   }

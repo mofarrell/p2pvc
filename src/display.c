@@ -19,8 +19,9 @@ void n3_init_screen(void){
  * crazy shifting is to set up every color 
  */
 void n3_init_colors(void) {
+  int i;
   start_color();
-  for (int i = 0; i < (1 << 8); i ++) {
+  for (i = 0; i < (1 << 8); i ++) {
     int r = i >> 5;
     int g = (i >> 2) & 0b111;
     int b = i & 0b111;
@@ -44,8 +45,9 @@ const char *sizes = "=+*%%@#";
 /* vector drawer
  */
 int n3_draw_image(char *data, int width, int height) {
-  for (int y=0; y<height; y++){
-    for (int x=0; x<width; x++){
+  int y, x;
+  for (y=0; y<height; y++){
+    for (x=0; x<width; x++){
       int intensity = (data[((height-y-1)*width+x)*4] +
           data[((height-y-1)*width+x)*4+1] + 
           data[((height-y-1)*width+x)*4+2])/127;
@@ -53,6 +55,8 @@ int n3_draw_image(char *data, int width, int height) {
           data[((height-y-1)*width+x)*4],
           data[((height-y-1)*width+x)*4+1],
           data[((height-y-1)*width+x)*4+2]);
+      (void) color;
+      (void) intensity;
       //mvaddch(y, x, sizes[intensity]|COLOR_PAIR(color));
 
     }
