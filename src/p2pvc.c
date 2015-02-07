@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
   if (argc < 3) {
     fprintf(stderr, "Usage: p2pvc [server] [port]\n");
   }
-  p2p_connect(argv[1], argv[2], &con);
+  create_client(argv[1], argv[2], &con);
 
   pthread_t thr;
   pthread_create(&thr, NULL, &dolisten, NULL);
