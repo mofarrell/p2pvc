@@ -20,7 +20,8 @@ int p2p_send(connection_t *con, void *buf, size_t buflen);
 int p2p_listener(connection_t **cons, size_t *conslen,
                  pthread_mutex_t *consmutex,
                  void (*callback)(connection_t *, void *, size_t),
-                 void (*new_callback)(connection_t *, void *, size_t));
+                 void (*new_callback)(connection_t *, void *, size_t),
+                 int socket);
 
 int p2p_init(int port, int *sockfd);
 

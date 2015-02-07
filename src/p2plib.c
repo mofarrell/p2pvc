@@ -14,10 +14,9 @@
 
 #define MAX_PACKET_SIZE   4096
 #define UDP_FLAGS         0
-#define PORT 1024
 
 
-int create_client(char *server_name, char *server_port, connection_t *c) {
+int p2p_connect(char *server_name, char *server_port, connection_t *c) {
   struct addrinfo protocol_spec;
   struct addrinfo *possible_addrs, *curr_addr;
   int err = 0;
@@ -32,7 +31,7 @@ int create_client(char *server_name, char *server_port, connection_t *c) {
   protocol_spec.ai_next = NULL;
 
   if ((err = getaddrinfo(server_name, server_port,
-       &protocol_spec, &possible_addrs)) != 0) {
+          &protocol_spec, &possible_addrs)) != 0) {
     fprintf(stderr, "error in getaddrinfo %s\n", strerror(errno));
     return (err);
   }
@@ -53,17 +52,19 @@ int create_client(char *server_name, char *server_port, connection_t *c) {
     return (ENOTCONN);
   }
 
+  int port;
+  sscanf(server_port, "%d", &port);
   c->addr.sin_family = curr_addr->ai_family;
-  c->addr.sin_port = htons(PORT);
+  c->addr.sin_port = htons(port);
 
   if (curr_addr->ai_family == AF_INET) {
-     memcpy((void *)&c->addr.sin_addr, &((struct sockaddr_in *)curr_addr->ai_addr)->sin_addr, curr_addr->ai_addrlen);
+    memcpy((void *)&c->addr.sin_addr, &((struct sockaddr_in *)curr_addr->ai_addr)->sin_addr, curr_addr->ai_addrlen);
   } else {
-     fprintf(stderr, "Unable to use ai_family returned.");
+    fprintf(stderr, "Unable to use ai_family returned.");
     freeaddrinfo(possible_addrs);
-     return (EINVAL);
+    return (EINVAL);
   }
-  
+
   freeaddrinfo(possible_addrs);
   c->addr_len = sizeof(c->addr);
 
@@ -72,7 +73,7 @@ int create_client(char *server_name, char *server_port, connection_t *c) {
 
 /* @Brief create a server that can cold up to max_connections 
    @Return an errno or 0 on success*/
-int p2p_init(int *sockfd) {
+int p2p_init(int port, int *sockfd) {
   int _sockfd_local;
   struct sockaddr_in me;
 
@@ -91,7 +92,7 @@ int p2p_init(int *sockfd) {
   /* XXX: Make sure these fields are OK, possibly switch to variables.*/
   memset(&me, 0, sizeof(me));
   me.sin_family = AF_INET;
-  me.sin_port = htons(PORT);
+  me.sin_port = htons(port);
   me.sin_addr.s_addr = htonl(INADDR_ANY);
 
   if (bind(_sockfd_local, (struct sockaddr *)&me, sizeof(me)) == -1) {
@@ -151,9 +152,10 @@ int p2p_broadcast(connection_t **cons, size_t *conslen, pthread_mutex_t *consmut
  * @return Negative value on error.
  */
 int p2p_listener(connection_t **cons, size_t *conslen,
-                 pthread_mutex_t *consmutex,
-                 void (*callback)(connection_t *, void *, size_t),
-                 void (*new_callback)(connection_t *, void *, size_t)) {
+    pthread_mutex_t *consmutex,
+    void (*callback)(connection_t *, void *, size_t),
+    void (*new_callback)(connection_t *, void *, size_t),
+    int socket) {
 
   /* A stack allocated connection struct to store any data
      about the connection we recieve. */
@@ -163,11 +165,11 @@ int p2p_listener(connection_t **cons, size_t *conslen,
   /* Loop on recvfrom. */
   while (1) {
     memset(buf, 0, MAX_PACKET_SIZE);
-    size_t recv_len = recvfrom(con.socket, buf, MAX_PACKET_SIZE, UDP_FLAGS, (struct sockaddr *)&(con.addr), &(con.addr_len));
+    int recv_len = recvfrom(socket, buf, MAX_PACKET_SIZE, UDP_FLAGS, (struct sockaddr *)&(con.addr), &(con.addr_len));
 
     /* Handle error UDP style (try again). */
     if (recv_len < 0) {
-      fprintf(stderr, "Recieve failed.\n");
+      fprintf(stderr, "Recieve failed. errno: %d\n", errno);
       continue;
     }
 
