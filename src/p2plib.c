@@ -17,6 +17,42 @@
 #define MAX_PACKET_SIZE   4096
 #define UDP_FLAGS         0
 
+/* @brief tells if a packet is used for p2p reasons
+ * @param con who sent the data
+ * @param data is the data
+ * @param datasize is data size
+ * @param cons current peer's connections (to append if CONS_HEADER)
+ * @param conslen
+ * @return 1 if its a p2plib packet else 0
+ */
+int p2p_data(connection_t *con, void *data, size_t datasize,
+             connection_t **cons, size_t *conslen) {
+
+  if (P2P_HEADER != ((p2p_header_t *)data)->check) {
+    return (0);
+  }
+
+  if (((p2p_header_t *)data)->act == PASS_HEADER) { 
+    /*XXX we can just use sum bytes for this as well */
+    char msg[32] = "password already sent";
+    p2p_send(con, msg, 20);
+  } else if (((p2p_header_t *)data)->act == CONS_HEADER) {
+    size_t h_cons, i;
+
+    memcpy(&h_cons, data + sizeof(p2p_header_t), sizeof(size_t));
+
+    *cons = realloc(*cons, (*conslen + h_cons));
+    
+    /* copy the connection_ts into the library */
+    for (i=0; i<h_cons; i++) {
+      memcpy(&cons[*conslen + i], (data + sizeof(size_t) + sizeof(p2p_header_t) + i*sizeof(connection_t)), sizeof(connection_t));
+    }
+
+    *conslen += h_cons;
+  }
+  return (1);
+}
+
 /* @brief Connects to a server.
  * @param server_name The IP address of the server.
  * @param server_port The port to connect on. 
@@ -114,6 +150,44 @@ int p2p_init(int port, int *sockfd) {
   return (0);
 }
 
+
+int p2p_send_pass(connection_t *con, char *password) {
+  p2p_header_t head;
+  head.act = PASS_HEADER;
+  head.check = P2P_HEADER;
+  
+  size_t sendbufsize = strlen(password) + 1 + sizeof(p2p_header_t);
+  void *sendbuf = malloc(sendbufsize);
+
+  memcpy(sendbuf, &head, sizeof(p2p_header_t));
+  memcpy(sendbuf + sizeof(p2p_header_t), password, strlen(password) + 1);
+
+  int rv = p2p_send(con, sendbuf, sendbufsize);
+
+  free(sendbuf);
+  return (rv);
+}
+
+int p2p_send_conns(connection_t *con, connection_t *cons, size_t conslen) {
+  size_t i;
+  p2p_header_t head;
+  head.act = CONS_HEADER;
+  head.check = P2P_HEADER;
+
+  size_t sendbufsize =  sizeof(size_t) + sizeof(p2p_header_t) + conslen * sizeof(connection_t);
+  void *sendbuf = malloc(sendbufsize);
+
+  memcpy(sendbuf, &head, sizeof(p2p_header_t));
+  memcpy(sendbuf + sizeof(p2p_header_t), &conslen, sizeof(size_t));
+
+  for (i=0; i<conslen; i++) {
+    memcpy(sendbuf + sizeof(size_t) + sizeof(p2p_header_t) + i*sizeof(connection_t), &cons[i], sizeof(connection_t));
+  }
+
+  int rv = p2p_send(con, sendbuf, sendbufsize);
+
+  return (rv);
+}
 
 /* @brief Send data to a connection.
  * @param con The connection to send the data to.
