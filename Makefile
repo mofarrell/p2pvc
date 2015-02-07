@@ -8,8 +8,9 @@ SRCS=$(wildcard $(SRCDIR)/*.c)
 OBJS=$(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
 
 CFLAGS+=-O2 -Wall
+CFLAGS+=`pkg-config --cflags --libs opencv`
 CFLAGS_DEBUG+=-O0 -g3 -Werror -DDEBUG
-LDFLAGS+=-lpthread
+LDFLAGS+=-lpthread -lncurses
 
 all: p2pvc
 
