@@ -55,12 +55,10 @@ static pa_buffer_attr buffer_attr = {
   .fragsize = (uint32_t)LATENCY
 };
 
-
 static connection_t *cons;
 static size_t conslen;
 static pthread_mutex_t conslock;
 static pthread_mutex_t buffer_lock;
-
 
 /* A shortcut for terminating the application */
 static void quit(int ret) {

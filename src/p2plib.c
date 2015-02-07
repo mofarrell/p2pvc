@@ -14,7 +14,7 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 
-#define MAX_PACKET_SIZE   4096
+#define MAX_PACKET_SIZE   4096 * 3
 #define UDP_FLAGS         0
 
 /* @brief tells if a packet is used for p2p reasons

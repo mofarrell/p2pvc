@@ -28,6 +28,7 @@ int main(int argc, char **argv) {
     pthread_create(&thr, NULL, spawn_audio_thread, (void *)argv);
     start_video(argv);
   } else {
+    printf("STSRTING\n");
     start_audio(argv);
   }
 

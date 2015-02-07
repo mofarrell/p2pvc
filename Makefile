@@ -18,6 +18,8 @@ al: p2pvc
 debug: CC+=$(CFLAGS_DEBUG)
 debug: p2pvc .FORCE
 
+.FORCE:
+
 p2pvc: $(OBJS)
 	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
