@@ -5,7 +5,7 @@
 #define VIDEO_WIDTH 200
 #define VIDEO_HEIGHT 250
 
-//#ifdef VIDEOONLY
+#ifdef VIDEOONLY
 
 int main(void) {
   IplImage* color_img;
@@ -29,4 +29,4 @@ int main(void) {
   cvDestroyWindow("Video");
   return 0;
 }
-//#endif
+#endif
