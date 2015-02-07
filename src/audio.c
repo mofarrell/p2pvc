@@ -27,7 +27,7 @@ static char *out_stream_name = "OutputStream", *out_device = NULL;
 
 int poll = 0;
 
-static int verbose = 1;
+static int verbose = 0;
 
 #define BUFFER_SIZE (1024*10)
 static size_t read_ptr = 0;
