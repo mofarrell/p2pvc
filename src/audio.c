@@ -333,12 +333,12 @@ static void audio_poll(pa_mainloop_api*m, pa_signal_event *e, int sig, void *use
 }
 
 /* Starts audio listenning and emission. */
-int start_audio(int argc, char *argv[]) {
+int start_audio(char *argv[]) {
   pthread_mutex_init(&conslock, NULL);
   pthread_mutex_init(&buffer_lock, NULL);
 
   cons = calloc(1, sizeof(connection_t));
-  if (p2p_connect(argv[1], argv[2], &(cons[0]))) {
+  if (p2p_connect(argv[1], "55555", &(cons[0]))) {
     fprintf(stderr, "Unable to connect to server.\n");
   } else {
     conslen++;
