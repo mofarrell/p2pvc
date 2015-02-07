@@ -7,7 +7,7 @@
 
 //#ifdef VIDEOONLY
 
-int main(int argc,char *argv[]) {
+int main(void) {
   IplImage* color_img;
   IplImage* resize_img = cvCreateImage(cvSize(VIDEO_WIDTH,VIDEO_HEIGHT),8,3)    ;   
   IplImage* gray_img = cvCreateImage(cvSize(VIDEO_WIDTH,VIDEO_HEIGHT),8,1)    ;   
