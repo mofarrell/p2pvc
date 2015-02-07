@@ -8,7 +8,7 @@ SRCS=$(wildcard $(SRCDIR)/*.c)
 OBJS=$(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
 
 CFLAGS+=-O2 -Wall
-CFLAGS_DEBUG+=-O0 -g3 -Werror -DDEBUG -pedantic
+CFLAGS_DEBUG+=-O0 -g3 -Werror -DDEBUG
 LDFLAGS+=-lpthread
 
 all: p2pvc

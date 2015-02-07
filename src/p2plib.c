@@ -15,7 +15,6 @@
 #define MAX_PACKET_SIZE   4096
 #define UDP_FLAGS         0
 
-
 int p2p_connect(char *server_name, char *server_port, connection_t *c) {
   struct addrinfo protocol_spec;
   struct addrinfo *possible_addrs, *curr_addr;
@@ -65,7 +64,7 @@ int p2p_connect(char *server_name, char *server_port, connection_t *c) {
     return (EINVAL);
   }
 
-  freeaddrinfo(possible_addrs);
+  //freeaddrinfo(possible_addrs);
   c->addr_len = sizeof(c->addr);
 
   return (0);
@@ -180,6 +179,7 @@ int p2p_listener(connection_t **cons, size_t *conslen,
     /* Check if the connection we recieved from is in our array. */
     int i, new_connection = 1;
     for (i = 0; i < *conslen; i++) {
+      printf("[%d]\n", i);
       if (con.addr.sin_addr.s_addr == (*cons)[i].addr.sin_addr.s_addr) {
         new_connection = 0;
         break;
