@@ -46,7 +46,7 @@ int main(int argc, char **argv) {
   while(1){
     printf("sending\n");
     char buf[10] = "HELLO";
-    p2p_send(&(cons[0]), buf, 7); 
+    p2p_broadcast(&cons, &conslen, &conslock, buf, 7); 
     sleep(1);
   }
 
