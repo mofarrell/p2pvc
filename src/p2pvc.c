@@ -44,8 +44,9 @@ int main(int argc, char **argv) {
   pthread_create(&thr, NULL, &dolisten, NULL);
 
   while(1){
+    printf("sending\n");
     char buf[10] = "HELLO";
-    p2p_send(&(cons[1]), buf, 7); 
+    p2p_send(&(cons[0]), buf, 7); 
     sleep(1);
   }
 
