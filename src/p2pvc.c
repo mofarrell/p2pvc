@@ -6,16 +6,18 @@ void callback(connection_t *con, void *data, size_t datalen) {
 }
 
 connection_t con;
-void dolisten(void) {
+void *dolisten(void *args) {
   connection_t cons[1] = { con };
-  p2p_listener(&cons, 1, NULL, &callback, NULL);
+  size_t i = 1;
+  p2p_listener((connection_t **)&cons, &i, NULL, &callback, NULL);
+  return NULL;
 }
 
 int main(int argc, char **argv) {
   if (argc < 3) {
     fprintf(stderr, "Usage: p2pvc [server] [port]\n");
   }
-  create_client(argv[1], argv[2], &con);
+  p2p_connect(argv[1], argv[2], &con);
 
   pthread_t thr;
   pthread_create(&thr, NULL, &dolisten, NULL);
