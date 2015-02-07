@@ -6,12 +6,31 @@
 #include <netinet/in.h>
 #include <pthread.h>
 
+#define P2P_HEADER 0x17381939
+
 /* @brief A status for connections. */
 typedef struct {
   int socket;
   struct sockaddr_in addr;
   socklen_t addr_len;
 } connection_t;
+
+/* @brief a type to signify what the p2p data should do */
+typedef enum {
+  PASS_HEADER,
+  CONS_HEADER,
+} p2p_action_t;
+
+/* @brief A header for non-user interaction */
+typedef struct {
+  unsigned int check;
+  p2p_action_t act;
+} p2p_header_t;
+
+int p2p_send_pass(connection_t *con, char *password);
+
+
+int p2p_data(connection_t *con, void *data, size_t datalen, connection_t **cons, size_t *conlen);
 
 int p2p_connect(char *server, char *port, connection_t *con);
 
