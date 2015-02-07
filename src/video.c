@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#ifdef VCONLY
+#ifdef VIDEOONLY
 int main(void) {
   printf("hello vc\n");
   return 0;
