@@ -48,7 +48,7 @@ int create_client(char *server_name, char *server_port, connection_t *c) {
     curr_addr = curr_addr->ai_next;
   }
 
-  if (curr_addr = NULL) {
+  if (curr_addr == NULL) {
     fprintf(stderr, "unable to find a server in create_client\n");
     freeaddrinfo(possible_addrs);
     return (ENOTCONN);
@@ -58,7 +58,7 @@ int create_client(char *server_name, char *server_port, connection_t *c) {
   c->addr.sin_port = htons(PORT);
 
   if (curr_addr->ai_family == AF_INET) {
-     memcpy((void *)&con->addr.sin_addr, &((struct sockaddr_in *)curr_addr->ai_addr)->sin_addr, curr_addr->ai_addrlen);
+     memcpy((void *)&c->addr.sin_addr, &((struct sockaddr_in *)curr_addr->ai_addr)->sin_addr, curr_addr->ai_addrlen);
   } else {
      fprintf(stderr, "Unable to use ai_family returned.");
     freeaddrinfo(possible_addrs);
@@ -66,7 +66,7 @@ int create_client(char *server_name, char *server_port, connection_t *c) {
   }
   
   freeaddrinfo(possible_addrs);
-  c->addr_len = sizeof(con->addr);
+  c->addr_len = sizeof(c->addr);
 
   return (0);
 }
