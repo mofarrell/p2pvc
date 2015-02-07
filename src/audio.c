@@ -62,63 +62,6 @@ static pthread_mutex_t conslock;
 static pthread_mutex_t buffer_lock;
 
 
-static void callback(connection_t *con, void *data, size_t length) {
-  pthread_mutex_lock(&buffer_lock);
-
-  size_t length1 = MIN(length, BUFFER_SIZE - read_ptr);
-  size_t length2 = length - length1;
-
-  if (write_ptr > read_ptr && write_ptr < read_ptr + length1) {
-    write_ptr = read_ptr + length1;
-  }
-  if (length2 != 0 && write_ptr < length2) {
-    write_ptr = length2;
-  }
-  assert(length1 + length2 == length);
-
-  if (verbose) {
-    fprintf(stderr, "length1: %lu, length2: %lu\n", length1, length2);
-  }
-
-  assert(read_ptr + length1 <= BUFFER_SIZE);
-  memcpy(&buffer[read_ptr], data, length1);
-  if (verbose) {
-    fprintf(stderr, "read: %lu\n", read_ptr);
-  }
-  read_ptr = (read_ptr + length1) % BUFFER_SIZE;
-  if (verbose) {
-    fprintf(stderr, "read: %lu\n", read_ptr);
-  }
-
-  if (length2 != 0) {
-    assert(length2 <= BUFFER_SIZE);
-    memcpy(buffer, (uint8_t *)data + length1, length2);
-    read_ptr = length2;
-  }
-
-  if (verbose) {
-    fprintf(stderr, "read: %lu\n", read_ptr);
-  }
-  pthread_mutex_unlock(&buffer_lock);
-
-  pa_mainloop_wakeup(mainloop);
-}
-
-static void new_callback(connection_t *con, void *data, size_t datalen) {
-  pthread_mutex_lock(&conslock);
-  conslen++;
-  cons = realloc(cons, conslen * sizeof(connection_t));
-  memcpy(&(cons[conslen-1]), con, sizeof(connection_t));
-  pthread_mutex_unlock(&conslock);
-}
-
-static void *dolisten(void *args) {
-  int socket;
-  p2p_init(55555, &socket);
-  p2p_listener((connection_t **)&cons, &conslen, &conslock, &callback, &new_callback, socket);
-  return NULL;
-}
-
 /* A shortcut for terminating the application */
 static void quit(int ret) {
   assert(mainloop_api);
@@ -321,16 +264,78 @@ static void exit_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig,
   quit(0);
 }
 
-int audio_poll(struct pollfd *ufds, unsigned long nfds, int timeout, void *userdata) {
-  if (out_stream) {
+static void callback(connection_t *con, void *data, size_t length) {
+  pthread_mutex_lock(&buffer_lock);
+
+  size_t length1 = MIN(length, BUFFER_SIZE - read_ptr);
+  size_t length2 = length - length1;
+
+  if (write_ptr > read_ptr && write_ptr < read_ptr + length1) {
+    write_ptr = read_ptr + length1;
+  }
+  if (length2 != 0 && write_ptr < length2) {
+    write_ptr = length2;
+  }
+  assert(length1 + length2 == length);
+
+  if (verbose) {
+    fprintf(stderr, "length1: %lu, length2: %lu\n", length1, length2);
+  }
+
+  assert(read_ptr + length1 <= BUFFER_SIZE);
+  memcpy(&buffer[read_ptr], data, length1);
+  if (verbose) {
+    fprintf(stderr, "read: %lu\n", read_ptr);
+  }
+  read_ptr = (read_ptr + length1) % BUFFER_SIZE;
+  if (verbose) {
+    fprintf(stderr, "read: %lu\n", read_ptr);
+  }
+
+  if (length2 != 0) {
+    assert(length2 <= BUFFER_SIZE);
+    memcpy(buffer, (uint8_t *)data + length1, length2);
+    read_ptr = length2;
+  }
+
+  if (verbose) {
+    fprintf(stderr, "read: %lu\n", read_ptr);
+  }
+  pthread_mutex_unlock(&buffer_lock);
+
+  if (poll && out_stream) {
     size_t length = pa_stream_writable_size(out_stream);
     if (length > 0) {
       stream_write_callback(out_stream, length, NULL);
     }
   }
-
-  return 0;
 }
+
+static void new_callback(connection_t *con, void *data, size_t datalen) {
+  pthread_mutex_lock(&conslock);
+  conslen++;
+  cons = realloc(cons, conslen * sizeof(connection_t));
+  memcpy(&(cons[conslen-1]), con, sizeof(connection_t));
+  pthread_mutex_unlock(&conslock);
+}
+
+static void *dolisten(void *args) {
+  int socket;
+  p2p_init(55555, &socket);
+  p2p_listener((connection_t **)&cons, &conslen, &conslock, &callback, &new_callback, socket);
+  return NULL;
+}
+
+//int audio_poll(struct pollfd *ufds, unsigned long nfds, int timeout, void *userdata) {
+//  if (out_stream) {
+//    size_t length = pa_stream_writable_size(out_stream);
+//    if (length > 0) {
+//      stream_write_callback(out_stream, length, NULL);
+//    }
+//  }
+//
+//  return 0;
+//}
 
 /* Starts audio listenning and emission. */
 int start_audio(int argc, char *argv[]) {
@@ -383,18 +388,9 @@ int start_audio(int argc, char *argv[]) {
   }
 
   /* Run the main loop */
-  while (pa_mainloop_iterate(mainloop, 0, &ret) >= 0) {
-    //if (pa_mainloop_run(mainloop, &ret) < 0) {
-    //  fprintf(stderr, ("pa_mainloop_run() failed.\n"));
-    //  goto quit;
-    //}
-    fprintf(stderr, "checking out stream.\n");
-    if (poll && out_stream) {
-      size_t length = pa_stream_writable_size(out_stream);
-      if (length > 0) {
-        stream_write_callback(out_stream, length, NULL);
-      }
-    }
+  if (pa_mainloop_run(mainloop, &ret) < 0) {
+    fprintf(stderr, ("pa_mainloop_run() failed.\n"));
+    goto quit;
   }
 
 quit:
