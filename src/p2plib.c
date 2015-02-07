@@ -19,6 +19,39 @@ typedef struct {
 
 int p2p_connect();
 
+/* @brief Send data to a connection.
+ * @param con The connection to send the data to.
+ * @param buf The data to send.
+ * @param buflen The length of the data to send.
+ * @return Negative value on error, 0 on success.
+ */
+int p2p_send(connection_t *con, void *buf, size_t buflen) {
+  return sendto(con->socket, buf, len, flags, (struct sockaddr *)&con->addr, con->addr_len);
+}
+
+/* @brief Send data to all connections.
+ * @param cons A reference to a connection array.
+ * @param conslen A reference to the length of the connection array.
+ * @param consmutex A mutex to access the connection array.
+ * @param buf The data to send.
+ * @param buflen The length of the data to send.
+ * @return Negative value on error, 0 on success.
+ */
+int p2p_broadcast(connection_t **cons, size_t *conslen, pthread_mutex_t *consmutex, void *buf, size_t buflen) {
+  if(consmutex) {
+    pthread_mutex_lock(consmutex);
+  }
+
+  int i;
+  for (i = 0; i < *conslen; i++) {
+    p2p_send(&((*cons)[i]), buf, buflen);
+  }
+
+  if(consmutex) {
+    pthread_mutex_unlock(consmutex);
+  }
+}
+
 /* @brief Initialize a listener.
  * @param cons A reference to a connection array.
  * @param conslen A reference to the length of the connection array.
