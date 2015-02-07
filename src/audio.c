@@ -20,11 +20,12 @@ static pa_context *context = NULL;
 static pa_stream *in_stream = NULL;
 static pa_stream *out_stream = NULL;
 static pa_mainloop_api *mainloop_api = NULL;
+static pa_mainloop *mainloop = NULL;
 
 static char *in_stream_name = "InputStream", *client_name = "AudioChatIn", *in_device = NULL;
 static char *out_stream_name = "OutputStream", *out_device = NULL;
 
-static int verbose = 0;
+static int verbose = 1;
 
 #define BUFFER_SIZE (1024*10)
 static size_t read_ptr = 0;
@@ -97,6 +98,8 @@ static void callback(connection_t *con, void *data, size_t length) {
     fprintf(stderr, "read: %lu\n", read_ptr);
   }
   pthread_mutex_unlock(&buffer_lock);
+
+  pa_mainloop_wakeup(mainloop);
 }
 
 static void new_callback(connection_t *con, void *data, size_t datalen) {
@@ -342,17 +345,16 @@ int start_audio(int argc, char *argv[]) {
   /* Check that our buffer is big enough. */
   assert(LATENCY < BUFFER_SIZE && PROCESS_TIME < BUFFER_SIZE);
 
-  pa_mainloop* m = NULL;
   int ret = 1, r;
   char *server = NULL;
 
   /* Set up a new main loop */
-  if (!(m = pa_mainloop_new())) {
+  if (!(mainloop = pa_mainloop_new())) {
     fprintf(stderr, ("pa_mainloop_new() failed.\n"));
     goto quit;
   }
 
-  mainloop_api = pa_mainloop_get_api(m);
+  mainloop_api = pa_mainloop_get_api(mainloop);
 
   r = pa_signal_init(mainloop_api);
   assert(r == 0);
@@ -375,13 +377,18 @@ int start_audio(int argc, char *argv[]) {
     goto quit;
   }
 
-  /* Poll to write audio. */
-  pa_mainloop_set_poll_func(m, &audio_poll, NULL);
-
   /* Run the main loop */
-  if (pa_mainloop_run(m, &ret) < 0) {
-    fprintf(stderr, ("pa_mainloop_run() failed.\n"));
-    goto quit;
+  while (1) {
+    if (pa_mainloop_run(mainloop, &ret) < 0) {
+      fprintf(stderr, ("pa_mainloop_run() failed.\n"));
+      goto quit;
+    }
+    if (out_stream) {
+      size_t length = pa_stream_writable_size(out_stream);
+      if (length > 0) {
+        stream_write_callback(out_stream, length, NULL);
+      }
+    }
   }
 
 quit:
@@ -391,9 +398,9 @@ quit:
   if (context)
     pa_context_unref(context);
 
-  if (m) {
+  if (mainloop) {
     pa_signal_done();
-    pa_mainloop_free(m);
+    pa_mainloop_free(mainloop);
   }
 
   pthread_mutex_destroy(&conslock);
