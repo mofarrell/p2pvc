@@ -18,13 +18,16 @@ void init_screen(void){
  * crazy shifting is to set up every color 
  */
 void init_colors(void) {
+  int i;
   start_color();
-  for (i = 0; i < (1 << 8); i ++) {
-    int r = i >> 5;
-    int g = (i >> 2) & 0b111;
-    int b = i & 0b111;
-    init_color(i, r, g, b);
-    init_pair(i, i, 0); // 0 --> i if you want pure blocks, otherwise ascii
+  if (COLORS == 8) {
+    for (i = 0; i < (1 << 8); i ++) {
+      init_pair(i, 255, 0); // 0 --> i if you want pure blocks, otherwise ascii
+    }
+  } else {
+    for (i = 0; i < (1 << 8); i ++) {
+      init_pair(i, i, 0); // 0 --> i if you want pure blocks, otherwise ascii
+    }
   }
   return;
 }
@@ -61,5 +64,6 @@ int draw_image(char *data, int width, int height, int step, int channels) {
   } 
 
   refresh();
+  return 0;
 }
 
