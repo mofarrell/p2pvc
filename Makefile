@@ -13,7 +13,7 @@ CFLAGS+=`pkg-config --cflags --libs opencv`
 CFLAGS_DEBUG+=-O0 -g3 -Werror -DDEBUG
 LDFLAGS+=-lpthread -lncurses -lpulse
 
-all: p2pvc
+al: p2pvc
 
 debug: CC+=$(CFLAGS_DEBUG)
 debug: p2pvc .FORCE
@@ -23,7 +23,7 @@ p2pvc: $(OBJS)
 
 video: CFLAGS := $(CFLAGS) -DVIDEOONLY
 video: $(filter-out objs/p2pvc.o, $(OBJS))
-	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS) -DVCONLY
+	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
 
 audio: CFLAGS := $(CFLAGS) -DAUDIOONLY
 audio: $(filter-out objs/p2pvc.o, $(OBJS))

@@ -4,11 +4,8 @@
 #include <ncurses.h>
 
 
-void n3_end_screen(void);
-void n3_init_screen(void);
-int n3_draw_image(char *data, int width, int height);
-int n3_draw_xy(char c, int x, int y);
-int n3_getch(void);
-void n3_refresh(void);
+void init_screen(void);
+void end_screen(void);
+int draw_image(char *data, int width, int height, int step, int channels);
 
 #endif /* DISPLAY_H */

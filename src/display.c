@@ -1,37 +1,39 @@
 #include "display.h"
+#include <assert.h>
 
 WINDOW *main_screen;
 
 /* private functions */
-void n3_init_colors(void);
+void init_colors(void);
 
-void n3_init_screen(void){
+void init_screen(void){
   main_screen = initscr();
   keypad(stdscr, TRUE);           // keypad enabled
   (void) nodelay(main_screen, 1); // no blocking
-  (void) nonl();                  // no new lines
   (void) noecho();                // don't print to screen
-  n3_init_colors();
-  refresh();
+  (void) nonl();                  // no new lines
+  init_colors();
 }
 
 /*
  * crazy shifting is to set up every color 
  */
-void n3_init_colors(void) {
+void init_colors(void) {
   int i;
   start_color();
-  for (i = 0; i < (1 << 8); i ++) {
-    int r = i >> 5;
-    int g = (i >> 2) & 0b111;
-    int b = i & 0b111;
-    init_color(i, r, g, b);
-    init_pair(i, i, 0); // 0 --> i if you want pure blocks, otherwise ascii
+  if (COLORS == 8) {
+    for (i = 0; i < (1 << 8); i ++) {
+      init_pair(i, 255, 0); // 0 --> i if you want pure blocks, otherwise ascii
+    }
+  } else {
+    for (i = 0; i < (1 << 8); i ++) {
+      init_pair(i, i, 0); // 0 --> i if you want pure blocks, otherwise ascii
+    }
   }
   return;
 }
 
-void n3_end_screen(void) {
+void end_screen(void) {
   endwin();
 }
 
@@ -40,39 +42,26 @@ static inline int get_color(int r, int g, int b) {
   return 16+r/48*36+g/48*6+b/48; 
 }
 
-const char *sizes = "=+*%%@#";
+const char *ascii_values = " .:-=+*#%@";
 
-/* vector drawer
- */
-int n3_draw_image(char *data, int width, int height) {
+int draw_image(char *data, int width, int height, int step, int channels) {
+  char ascii_image[width*height];
   int y, x;
+  unsigned char b, g, r;
+  int offset = 0;
+  int intensity;
   for (y=0; y<height; y++){
     for (x=0; x<width; x++){
-      int intensity = (data[((height-y-1)*width+x)*4] +
-          data[((height-y-1)*width+x)*4+1] + 
-          data[((height-y-1)*width+x)*4+2])/127;
-      int color = get_color(
-          data[((height-y-1)*width+x)*4],
-          data[((height-y-1)*width+x)*4+1],
-          data[((height-y-1)*width+x)*4+2]);
-      (void) color;
-      (void) intensity;
-      //mvaddch(y, x, sizes[intensity]|COLOR_PAIR(color));
-
+      b = data[step * y + x * channels] + offset;
+      g = data[step * y + x * channels + 1] + offset;
+      r = data[step * y + x * channels + 2] + offset;
+      intensity = (int)(0.2126*r + 0.7152*g + 0.0722*b);
+      ascii_image[y*width + x] = ascii_values[intensity / 32];
+      int color = get_color(r,g,b);
+      mvaddch(y, x, ascii_image[y*width + x]|COLOR_PAIR(color));
     }
-  }
-  return 0;
-}
+  } 
 
-/* 
- * draws char to (x,y)
- * returns -1 on error
- */
-int n3_draw_xy(char c, int x, int y){
-  if (x > COLS || x < 0 || y > LINES || y < 0) {
-    return -1;
-  } else {
-    mvaddch(x, y, c);
-    return 0;
-  }
+  refresh();
+  return 0;
 }
