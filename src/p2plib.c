@@ -52,8 +52,11 @@ int p2p_listener(connection_t **cons, size_t *conslen,
       continue;
     }
 
+    if(consmutex) {
+      pthread_mutex_lock(consmutex);
+    }
+
     /* Check if the connection we recieved from is in our array. */
-    pthread_mutex_lock(consmutex);
     int i, new_connection = 1;
     for (i = 0; i < *conslen; i++) {
       if (con.addr.sin_addr.s_addr == (*cons)[i].addr.sin_addr.s_addr) {
@@ -61,7 +64,10 @@ int p2p_listener(connection_t **cons, size_t *conslen,
         break;
       }
     }
-    pthread_mutex_unlock(consmutex);
+
+    if(consmutex) {
+      pthread_mutex_unlock(consmutex);
+    }
 
     /* Now invoke callbacks. */
     if (new_connection) {
