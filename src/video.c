@@ -1,11 +1,12 @@
 #include <cv.h>
 #include <highgui.h>
 #include <stdio.h>
+#include "display.h"
 
 #define VIDEO_WIDTH 200
 #define VIDEO_HEIGHT 250
 
-#ifdef VIDEOONLY
+//#ifdef VIDEOONLY
 
 int main(void) {
   IplImage* color_img;
@@ -22,6 +23,7 @@ int main(void) {
       cvCvtColor(resize_img, gray_img, CV_BGR2GRAY);
       /* Display it yo */
       cvShowImage("Video", gray_img);
+      n3_draw_image(gray_img->imageData, gray_img->width, gray_img->height);
     }
   }
   /* Housekeeping */
@@ -29,4 +31,4 @@ int main(void) {
   cvDestroyWindow("Video");
   return 0;
 }
-#endif
+//#endif
