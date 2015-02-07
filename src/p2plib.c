@@ -65,9 +65,12 @@ int p2p_listener(connection_t **cons, size_t *conslen,
 
     /* Now invoke callbacks. */
     if (new_connection) {
-      new_callback(&con, buf, recv_len);
+      /* Ignore new_callback if not defined. */
+      if (new_callback) {
+        (*new_callback)(&con, buf, recv_len);
+      }
     } else {
-      callback(&con, buf, recv_len);
+      (*callback)(&con, buf, recv_len);
     }
 
   }
