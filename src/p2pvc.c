@@ -9,7 +9,7 @@ connection_t con;
 void *dolisten(void *args) {
   connection_t cons[1] = { con };
   size_t i = 1;
-  p2p_listener((connection_t **)&cons, &i, NULL, &callback, NULL);
+  p2p_listener((connection_t **)&cons, &i, NULL, &callback, NULL, con.socket);
   return NULL;
 }
 
@@ -18,6 +18,9 @@ int main(int argc, char **argv) {
     fprintf(stderr, "Usage: p2pvc [server] [port]\n");
   }
   p2p_connect(argv[1], argv[2], &con);
+
+  char buf[10] = "HELLO";
+  p2p_send(&con, buf, 7); 
 
   pthread_t thr;
   pthread_create(&thr, NULL, &dolisten, NULL);
