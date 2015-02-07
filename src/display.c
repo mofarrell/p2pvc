@@ -1,6 +1,8 @@
 #include <display.h>
 #include <assert.h>
 
+#define min(a,b) ((a)>(b)?(b):(a))
+
 WINDOW *main_screen;
 
 /* private functions */
@@ -42,7 +44,7 @@ static inline int get_color(int r, int g, int b) {
   return 16+r/48*36+g/48*6+b/48; 
 }
 
-const char *ascii_values = "  ..::--===+++***###%%%%@@@@@";
+const char ascii_values[] = "  ..::--===+++***###%%%%@@@@@";
 
 int draw_image(char *data, int width, int height, int step, int channels) {
   char ascii_image[width*height];
@@ -56,7 +58,7 @@ int draw_image(char *data, int width, int height, int step, int channels) {
       g = data[step * y + x * channels + 1] + offset;
       r = data[step * y + x * channels + 2] + offset;
       intensity = (int)(0.2126*r + 0.7152*g + 0.0722*b);
-      ascii_image[y*width + x] = ascii_values[intensity / 9];
+      ascii_image[y*width + x] = ascii_values[min((intensity + 40) / 9, sizeof(ascii_values))];
       int color = get_color(r,g,b);
       mvaddch(y, x, ascii_image[y*width + x]|COLOR_PAIR(color));
     }
