@@ -14,7 +14,6 @@ static pthread_mutex_t conslock;
 static pthread_mutex_t buffer_lock;
 
 static void callback(connection_t *con, void *data, size_t length) {
-  fprintf(stderr, "LENGTH: %lu", length);
   pthread_mutex_lock(&buffer_lock);
   draw_image((char *)data, VIDEO_WIDTH, VIDEO_HEIGHT, 3 * VIDEO_WIDTH, 3);
   pthread_mutex_unlock(&buffer_lock);
