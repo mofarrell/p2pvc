@@ -13,12 +13,10 @@ void callback(connection_t *con, void *data, size_t datalen) {
 }
 
 void new_callback(connection_t *con, void *data, size_t datalen) {
-  printf("newDATA: %s\n", (char *)data);
+  printf("new: %s\n", (char *)data);
   pthread_mutex_lock(&conslock);
   conslen++;
-  printf("NEW PERSONSDFSDFSDF %d\n", (int)conslen);
   cons = realloc(cons, conslen * sizeof(connection_t));
-  printf("HISDF");
   memcpy(&(cons[conslen-1]), con, sizeof(connection_t));
   pthread_mutex_unlock(&conslock);
 }
@@ -36,7 +34,9 @@ int main(int argc, char **argv) {
   }
 
   cons = calloc(1, sizeof(connection_t));
-  if (!p2p_connect(argv[1], argv[2], &(cons[0]))) {
+  if (p2p_connect(argv[1], argv[2], &(cons[0]))) {
+    fprintf(stderr, "Unable to connect to server.\n");
+  } else {
     conslen++;
   }
 
@@ -44,7 +44,6 @@ int main(int argc, char **argv) {
   pthread_create(&thr, NULL, &dolisten, NULL);
 
   while(1){
-    printf("sending\n");
     char buf[10] = "HELLO";
     p2p_broadcast(&cons, &conslen, &conslock, buf, 7); 
     sleep(1);
