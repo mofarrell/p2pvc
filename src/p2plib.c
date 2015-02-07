@@ -2,20 +2,12 @@
  * @brief Implements p2plib.
  */
 #include <stdio.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <pthread.h>
 #include <string.h>
+#include <p2plib.h>
 
 #define MAX_PACKET_SIZE   4096
 #define UDP_FLAGS         0
 
-/* @brief A status for connections. */
-typedef struct {
-  int socket;
-  struct sockaddr_in addr;
-  socklen_t addr_len;
-} connection_t;
 
 int p2p_connect();
 
@@ -26,7 +18,7 @@ int p2p_connect();
  * @return Negative value on error, 0 on success.
  */
 int p2p_send(connection_t *con, void *buf, size_t buflen) {
-  return sendto(con->socket, buf, len, flags, (struct sockaddr *)&con->addr, con->addr_len);
+  return sendto(con->socket, buf, buflen, UDP_FLAGS, (struct sockaddr *)&con->addr, con->addr_len);
 }
 
 /* @brief Send data to all connections.
@@ -50,6 +42,7 @@ int p2p_broadcast(connection_t **cons, size_t *conslen, pthread_mutex_t *consmut
   if(consmutex) {
     pthread_mutex_unlock(consmutex);
   }
+  return 0;
 }
 
 /* @brief Initialize a listener.
