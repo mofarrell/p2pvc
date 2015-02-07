@@ -16,14 +16,14 @@ int main(void) {
 
   CvCapture* cv_cap = cvCaptureFromCAM(0);
   /* Create window */
-  cvNamedWindow("Video",0); 
+  //cvNamedWindow("Video",0); 
   for(;;) {
     /* Get each frame */
     color_img = cvQueryFrame(cv_cap);
     if(color_img != 0) {
       cvResize(color_img, resize_img, CV_INTER_AREA);
       /* Display it yo */
-      cvShowImage("Video", resize_img);
+      //cvShowImage("Video", resize_img);
 
       draw_image(resize_img->imageData, resize_img->width, resize_img->height, resize_img->widthStep, resize_img->nChannels);
     }

@@ -1,4 +1,5 @@
 #include "display.h"
+#include <assert.h>
 
 WINDOW *main_screen;
 
@@ -19,12 +20,34 @@ void init_screen(void){
  */
 void init_colors(void) {
   start_color();
-  for (i = 0; i < (1 << 8); i ++) {
-    int r = i >> 5;
-    int g = (i >> 2) & 0b111;
-    int b = i & 0b111;
-    init_color(i, r, g, b);
-    init_pair(i, i, 0); // 0 --> i if you want pure blocks, otherwise ascii
+    fprintf(stderr, "Colors: %d, Color pairs:%d\n", COLORS, COLOR_PAIRS);
+  if (!has_colors() || !can_change_color()) {
+    fprintf(stderr, "cannot use colors :(\n");
+  }
+  assert(COLORS < COLOR_PAIRS);
+  if (COLORS == 8) {
+    int i;
+    for (i = 0; i < 255; i ++) {
+      init_pair(i, 255, 0); // 0 --> i if you want pure blocks, otherwise ascii
+    }
+  } else if (COLORS == 88) {  
+    int i;
+    for (i = 0; i < 255; i ++) {
+      int r = i >> 5;
+      int g = (i >> 2) & 0b111;
+      int b = i & 0b111;
+      init_color(i, r, g, b);
+      init_pair(i, i, 0); // 0 --> i if you want pure blocks, otherwise ascii
+    }
+  } else {
+    int i;
+    for (i = 0; i < (1 << 8); i ++) {
+      int r = i >> 5;
+      int g = (i >> 2) & 0b111;
+      int b = i & 0b111;
+      init_color(i, r, g, b);
+      init_pair(i, i, 0); // 0 --> i if you want pure blocks, otherwise ascii
+    }
   }
   return;
 }
@@ -55,8 +78,8 @@ int draw_image(char *data, int width, int height, int step, int channels) {
       r = data[step * y + x * channels + 2] + offset;
       intensity = (int)(0.2126*r + 0.7152*g + 0.0722*b);
       ascii_image[y*width + x] = ascii_values[intensity / 25];
-      int color = get_color(r,g,b);
-      mvaddch(y, x, ascii_image[y*width + x]|COLOR_PAIR(color));
+      int color = 1; get_color(r,g,b);
+      mvaddch(y, x, ascii_image[y*width + x]);//|COLOR_PAIR(color));
     }
   } 
 
