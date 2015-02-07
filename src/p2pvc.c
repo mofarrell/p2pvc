@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <p2plib.h>
-#include <pthread.h>
 
 void callback(connection_t *con, void *data, size_t datalen) {
   printf("DATA: %s\n", (char *)data);

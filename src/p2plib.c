@@ -7,12 +7,11 @@
 #include <string.h>
 #include <errno.h>
 #include <err.h>
+#include <netdb.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <stdlib.h>
-#include <netdb.h>
 
-#define __USE_POSIX
 #define MAX_PACKET_SIZE   4096
 #define UDP_FLAGS         0
 #define PORT 1024
