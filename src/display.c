@@ -1,4 +1,4 @@
-#include "display.h"
+#include <display.h>
 #include <assert.h>
 
 WINDOW *main_screen;
