@@ -25,6 +25,8 @@ static pa_mainloop *mainloop = NULL;
 static char *in_stream_name = "InputStream", *client_name = "AudioChatIn", *in_device = NULL;
 static char *out_stream_name = "OutputStream", *out_device = NULL;
 
+int poll = 0;
+
 static int verbose = 1;
 
 #define BUFFER_SIZE (1024*10)
@@ -103,7 +105,6 @@ static void callback(connection_t *con, void *data, size_t length) {
 }
 
 static void new_callback(connection_t *con, void *data, size_t datalen) {
-  printf("new: %s\n", (char *)data);
   pthread_mutex_lock(&conslock);
   conslen++;
   cons = realloc(cons, conslen * sizeof(connection_t));
@@ -227,6 +228,10 @@ static void stream_state_callback(pa_stream *s, void *userdata) {
       if (verbose) {
         const pa_buffer_attr *a;
         char cmt[PA_CHANNEL_MAP_SNPRINT_MAX], sst[PA_SAMPLE_SPEC_SNPRINT_MAX];
+
+        if (s == out_stream) {
+          poll = 1;
+        }
 
         fprintf(stderr, ("Stream successfully created.\n"));
 
@@ -378,12 +383,13 @@ int start_audio(int argc, char *argv[]) {
   }
 
   /* Run the main loop */
-  while (1) {
-    if (pa_mainloop_run(mainloop, &ret) < 0) {
-      fprintf(stderr, ("pa_mainloop_run() failed.\n"));
-      goto quit;
-    }
-    if (out_stream) {
+  while (pa_mainloop_iterate(mainloop, 0, &ret) >= 0) {
+    //if (pa_mainloop_run(mainloop, &ret) < 0) {
+    //  fprintf(stderr, ("pa_mainloop_run() failed.\n"));
+    //  goto quit;
+    //}
+    fprintf(stderr, "checking out stream.\n");
+    if (poll && out_stream) {
       size_t length = pa_stream_writable_size(out_stream);
       if (length > 0) {
         stream_write_callback(out_stream, length, NULL);
