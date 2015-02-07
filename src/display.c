@@ -19,33 +19,14 @@ void init_screen(void){
  * crazy shifting is to set up every color 
  */
 void init_colors(void) {
+  int i;
   start_color();
-    fprintf(stderr, "Colors: %d, Color pairs:%d\n", COLORS, COLOR_PAIRS);
-  if (!has_colors() || !can_change_color()) {
-    fprintf(stderr, "cannot use colors :(\n");
-  }
-  assert(COLORS < COLOR_PAIRS);
   if (COLORS == 8) {
-    int i;
-    for (i = 0; i < 255; i ++) {
+    for (i = 0; i < (1 << 8); i ++) {
       init_pair(i, 255, 0); // 0 --> i if you want pure blocks, otherwise ascii
     }
-  } else if (COLORS == 88) {  
-    int i;
-    for (i = 0; i < 255; i ++) {
-      int r = i >> 5;
-      int g = (i >> 2) & 0b111;
-      int b = i & 0b111;
-      init_color(i, r, g, b);
-      init_pair(i, i, 0); // 0 --> i if you want pure blocks, otherwise ascii
-    }
   } else {
-    int i;
     for (i = 0; i < (1 << 8); i ++) {
-      int r = i >> 5;
-      int g = (i >> 2) & 0b111;
-      int b = i & 0b111;
-      init_color(i, r, g, b);
       init_pair(i, i, 0); // 0 --> i if you want pure blocks, otherwise ascii
     }
   }
@@ -84,5 +65,6 @@ int draw_image(char *data, int width, int height, int step, int channels) {
   } 
 
   refresh();
+  return 0;
 }
 
