@@ -4,9 +4,18 @@
 #include <stdio.h>
 #include <string.h>
 #include <p2plib.h>
+#include <string.h>
+#include <errno.h>
+#include <err.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <stdlib.h>
+#include <netdb.h>
 
+#define __USE_POSIX
 #define MAX_PACKET_SIZE   4096
 #define UDP_FLAGS         0
+#define PORT 1024
 
 
 int create_client(char *server_name, char *server_port, connection_t *c) {
