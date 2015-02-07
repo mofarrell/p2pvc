@@ -22,3 +22,5 @@ int p2p_listener(connection_t **cons, size_t *conslen,
                  void (*callback)(connection_t *, void *, size_t),
                  void (*new_callback)(connection_t *, void *, size_t));
 
+int p2p_init(int port, int *sockfd);
+

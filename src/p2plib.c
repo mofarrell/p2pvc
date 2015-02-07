@@ -7,12 +7,11 @@
 #include <string.h>
 #include <errno.h>
 #include <err.h>
+#include <netdb.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <stdlib.h>
-#include <netdb.h>
 
-#define __USE_POSIX
 #define MAX_PACKET_SIZE   4096
 #define UDP_FLAGS         0
 #define PORT 1024
@@ -75,7 +74,6 @@ int create_client(char *server_name, char *server_port, connection_t *c) {
    @Return an errno or 0 on success*/
 int p2p_init(int *sockfd) {
   int _sockfd_local;
-  short port;
   struct sockaddr_in me;
 
   /* create socket */
@@ -96,7 +94,7 @@ int p2p_init(int *sockfd) {
   me.sin_port = htons(PORT);
   me.sin_addr.s_addr = htonl(INADDR_ANY);
 
-  if (bind(_sockfd_local, &me, sizeof(me)) == -1) {
+  if (bind(_sockfd_local, (struct sockaddr *)&me, sizeof(me)) == -1) {
     fprintf(stderr, "error in binding socket: %s\n", strerror(errno));
     return (errno);
   }

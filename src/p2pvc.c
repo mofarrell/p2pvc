@@ -1,15 +1,16 @@
 #include <stdio.h>
 #include <p2plib.h>
-#include <pthread.h>
 
 void callback(connection_t *con, void *data, size_t datalen) {
   printf("DATA: %s\n", (char *)data);
 }
 
 connection_t con;
-void dolisten(void) {
+void *dolisten(void *args) {
   connection_t cons[1] = { con };
-  p2p_listener(&cons, 1, NULL, &callback, NULL);
+  size_t i = 1;
+  p2p_listener((connection_t **)&cons, &i, NULL, &callback, NULL);
+  return NULL;
 }
 
 int main(int argc, char **argv) {

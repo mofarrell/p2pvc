@@ -7,7 +7,7 @@ CFLAGS+=-I$(INCDIR)
 SRCS=$(wildcard $(SRCDIR)/*.c)
 OBJS=$(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
 
-CFLAGS+=-O2 -Wall -std=c99 -fPIC
+CFLAGS+=-O2 -Wall
 CFLAGS+=`pkg-config --cflags --libs opencv`
 CFLAGS_DEBUG+=-O0 -g3 -Werror -DDEBUG -pedantic
 LDFLAGS+=-lpthread
