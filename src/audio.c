@@ -93,8 +93,8 @@ static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
     quit(1);
     return;
   }
-  pthread_mutex_unlock(&buffer_lock);
   write_ptr = (write_ptr + length) % BUFFER_SIZE;
+  pthread_mutex_unlock(&buffer_lock);
 }
 
 /* This is called whenever new data may be written to the stream */
@@ -303,12 +303,7 @@ static void callback(connection_t *con, void *data, size_t length) {
   }
   pthread_mutex_unlock(&buffer_lock);
 
-  if (poll && out_stream) {
-    size_t length = pa_stream_writable_size(out_stream);
-    if (length > 0) {
-      stream_write_callback(out_stream, length, NULL);
-    }
-  }
+  kill(getpid(), SIGALRM);
 }
 
 static void new_callback(connection_t *con, void *data, size_t datalen) {
@@ -326,16 +321,16 @@ static void *dolisten(void *args) {
   return NULL;
 }
 
-//int audio_poll(struct pollfd *ufds, unsigned long nfds, int timeout, void *userdata) {
-//  if (out_stream) {
-//    size_t length = pa_stream_writable_size(out_stream);
-//    if (length > 0) {
-//      stream_write_callback(out_stream, length, NULL);
-//    }
-//  }
-//
-//  return 0;
-//}
+static void audio_poll(pa_mainloop_api*m, pa_signal_event *e, int sig, void *userdata) {
+  if (out_stream) {
+    size_t length = pa_stream_writable_size(out_stream);
+    if (length > 0) {
+      stream_write_callback(out_stream, length, NULL);
+    }
+  }
+
+  return;
+}
 
 /* Starts audio listenning and emission. */
 int start_audio(int argc, char *argv[]) {
@@ -368,7 +363,8 @@ int start_audio(int argc, char *argv[]) {
 
   r = pa_signal_init(mainloop_api);
   assert(r == 0);
-  pa_signal_new(SIGINT, exit_signal_callback, NULL);
+  pa_signal_new(SIGINT, &exit_signal_callback, NULL);
+  pa_signal_new(SIGALRM, &audio_poll, NULL);
 #ifdef SIGPIPE
   signal(SIGPIPE, SIG_IGN);
 #endif
