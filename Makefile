@@ -4,20 +4,19 @@ SRCDIR=src
 INCDIR=$(SRCDIR)/inc
 CFLAGS+=-I$(INCDIR)
 
+
 SRCS=$(wildcard $(SRCDIR)/*.c)
 OBJS=$(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
 
 CFLAGS+=-O2 -Wall
 CFLAGS+=`pkg-config --cflags --libs opencv`
 CFLAGS_DEBUG+=-O0 -g3 -Werror -DDEBUG
-LDFLAGS+=-lpthread -lncurses
+LDFLAGS+=-lpthread -lncurses -lpulse
 
 all: p2pvc
 
 debug: CC+=$(CFLAGS_DEBUG)
 debug: p2pvc .FORCE
-
-.FORCE:
 
 p2pvc: $(OBJS)
 	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)

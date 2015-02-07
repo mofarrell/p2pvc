@@ -19,7 +19,7 @@ void init_screen(void){
  */
 void init_colors(void) {
   start_color();
-  for (int i = 0; i < (1 << 8); i ++) {
+  for (i = 0; i < (1 << 8); i ++) {
     int r = i >> 5;
     int g = (i >> 2) & 0b111;
     int b = i & 0b111;

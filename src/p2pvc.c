@@ -9,6 +9,7 @@ static size_t conslen;
 static pthread_mutex_t conslock;
 
 void callback(connection_t *con, void *data, size_t datalen) {
+  /* REPLACE WITH PLAY AUDIO PACKET */
   printf("DATA: %s\n", (char *)data);
 }
 
@@ -44,6 +45,7 @@ int main(int argc, char **argv) {
   pthread_create(&thr, NULL, &dolisten, NULL);
 
   while(1){
+    /* REPLACE WITH SEND AUDIO PACKET */
     char buf[10] = "HELLO";
     p2p_broadcast(&cons, &conslen, &conslock, buf, 7); 
     sleep(1);

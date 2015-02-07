@@ -8,7 +8,6 @@
 
 #ifdef VIDEOONLY
 
-
 int main(void) {
   init_screen();
 
