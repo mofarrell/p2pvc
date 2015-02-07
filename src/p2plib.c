@@ -190,7 +190,6 @@ int p2p_listener(connection_t **cons, size_t *conslen,
     /* Check if the connection we recieved from is in our array. */
     int i, new_connection = 1;
     for (i = 0; i < *conslen; i++) {
-      printf("[%d]\n", i);
       if (con.addr.sin_addr.s_addr == (*cons)[i].addr.sin_addr.s_addr) {
         new_connection = 0;
         break;
