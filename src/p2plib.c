@@ -15,7 +15,13 @@
 #define MAX_PACKET_SIZE   4096
 #define UDP_FLAGS         0
 
-int p2p_connect(char *server_name, char *server_port, connection_t *c) {
+/* @brief Connects to a server.
+ * @param server_name The IP address of the server.
+ * @param server_port The port to connect on. 
+ * @param c The connection to be populated.
+ * @return 0 on success -1 on error.
+ */
+int p2p_connect(char *server_name, char *server_port, connection_t *con) {
   struct addrinfo protocol_spec;
   struct addrinfo *possible_addrs, *curr_addr;
   int err = 0;
@@ -24,7 +30,7 @@ int p2p_connect(char *server_name, char *server_port, connection_t *c) {
   protocol_spec.ai_family = AF_INET;
   protocol_spec.ai_socktype = SOCK_DGRAM; /* Datagram socket */
   protocol_spec.ai_flags = AI_PASSIVE; /* For wildcard IP address */
-  protocol_spec.ai_protocol = IPPROTO_UDP; /* XXX: UDP protocol */
+  protocol_spec.ai_protocol = IPPROTO_UDP; /* UDP protocol */
   protocol_spec.ai_canonname = NULL;
   protocol_spec.ai_addr = NULL;
   protocol_spec.ai_next = NULL;
@@ -37,9 +43,8 @@ int p2p_connect(char *server_name, char *server_port, connection_t *c) {
 
   curr_addr = possible_addrs;
   while (curr_addr != NULL) {
-    c->socket = socket(curr_addr->ai_family, curr_addr->ai_socktype, curr_addr->ai_protocol);
-    if (c->socket > 0) {
-      /* XXX : bind to server */
+    con->socket = socket(curr_addr->ai_family, curr_addr->ai_socktype, curr_addr->ai_protocol);
+    if (con->socket > 0) {
       break;
     }
     curr_addr = curr_addr->ai_next;
@@ -53,25 +58,29 @@ int p2p_connect(char *server_name, char *server_port, connection_t *c) {
 
   int port;
   sscanf(server_port, "%d", &port);
-  c->addr.sin_family = curr_addr->ai_family;
-  c->addr.sin_port = htons(port);
+  con->addr.sin_family = curr_addr->ai_family;
+  con->addr.sin_port = htons(port);
 
   if (curr_addr->ai_family == AF_INET) {
-    memcpy((void *)&c->addr.sin_addr, &((struct sockaddr_in *)curr_addr->ai_addr)->sin_addr, curr_addr->ai_addrlen);
+    memcpy((void *)&con->addr.sin_addr, &((struct sockaddr_in *)curr_addr->ai_addr)->sin_addr, curr_addr->ai_addrlen);
   } else {
     fprintf(stderr, "Unable to use ai_family returned.");
     freeaddrinfo(possible_addrs);
     return (EINVAL);
   }
 
+  /* TODO why does this need to be commented out? */
   //freeaddrinfo(possible_addrs);
-  c->addr_len = sizeof(c->addr);
+  con->addr_len = sizeof(con->addr);
 
-  return (0);
+  return 0;
 }
 
-/* @Brief create a server that can cold up to max_connections 
-   @Return an errno or 0 on success*/
+/* @brief Create a server that can cold up to max_connections.
+ * @param port The port to initialize on.
+ * @param sockfd A reference to populate once the socket is initialized.
+ * @return An errno or 0 on success.
+ */
 int p2p_init(int port, int *sockfd) {
   int _sockfd_local;
   struct sockaddr_in me;
