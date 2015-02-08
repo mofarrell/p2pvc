@@ -23,7 +23,7 @@ void init_screen(void){
 void init_colors(void) {
   int i;
   start_color();
-  if (COLORS == 8) {
+  if (COLORS < 255) {
     for (i = 0; i < (1 << 8); i ++) {
       init_pair(i, 255, 0); // 0 --> i if you want pure blocks, otherwise ascii
     }
@@ -60,6 +60,9 @@ int draw_image(char *data, int width, int height, int step, int channels) {
       intensity = (int)(0.2126*r + 0.7152*g + 0.0722*b);
       ascii_image[y*width + x] = ascii_values[min((intensity + 40) / 9, sizeof(ascii_values))];
       int color = get_color(r,g,b);
+      if (COLORS < 255) {
+        color = 0;
+      }
       mvaddch(y, x, ascii_image[y*width + x]|COLOR_PAIR(color));
     }
   } 
