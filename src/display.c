@@ -53,8 +53,8 @@ int draw_image(char *data, int width, int height, int step, int channels) {
   unsigned char b, g, r;
   int offset = 0;
   int intensity;
-  for (y=0; y < height && y < LINES; y++){
-    for (x=0; x < width && x < COLS; x++){
+  for (y = 0; y < height && y < LINES; y++){
+    for (x = 0; x < width && x < COLS; x++){
       b = data[step * y + x * channels] + offset;
       g = data[step * y + x * channels + 1] + offset;
       r = data[step * y + x * channels + 2] + offset;
@@ -72,3 +72,4 @@ int draw_image(char *data, int width, int height, int step, int channels) {
   refresh();
   return 0;
 }
+
