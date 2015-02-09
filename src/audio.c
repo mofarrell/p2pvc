@@ -217,8 +217,9 @@ static void context_state_callback(pa_context *c, void *userdata) {
 
 /* UNIX signal to quit recieved */
 static void exit_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig, void *userdata) {
-  if (verbose)
+  if (verbose) {
     fprintf(stderr, ("Got SIGINT, exiting.\n"));
+  }
   quit(0);
 }
 
@@ -322,7 +323,9 @@ int start_audio(char *peer, char *port) {
 
   r = pa_signal_init(mainloop_api);
   assert(r == 0);
-  pa_signal_new(SIGINT, &exit_signal_callback, NULL);
+
+  /* This will get tripped by the main thread's SIGINT handler. */
+  pa_signal_new(SIGUSR1, &exit_signal_callback, NULL);
   pa_signal_new(SIGALRM, &audio_poll, NULL);
 #ifdef SIGPIPE
   signal(SIGPIPE, SIG_IGN);

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <p2plib.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include <audio.h>
 #include <video.h>
@@ -16,6 +17,16 @@ void *spawn_audio_thread(void *args) {
   network_options_t *netopts = args;
   start_audio(netopts->ipaddr, netopts->port);
   return NULL;
+}
+
+void audio_shutdown(int signal) {
+  kill(getpid(), SIGUSR1);
+}
+
+void all_shutdown(int signal) {
+  printf("SHUTTIND DOWN\n");
+  video_shutdown(signal);
+  audio_shutdown(signal);
 }
 
 void get_dimensions(char dim[], int *width, int *height) {
@@ -68,7 +79,9 @@ int main(int argc, char **argv) {
     }
   }
 
+
   if (spawn_video) {
+    signal(SIGINT, all_shutdown);
     pthread_t thr;
     network_options_t netopts;
     netopts.ipaddr = peer;
@@ -76,6 +89,7 @@ int main(int argc, char **argv) {
     pthread_create(&thr, NULL, spawn_audio_thread, (void *)&netopts);
     start_video(peer, video_port, width, height);
   } else {
+    signal(SIGINT, audio_shutdown);
     start_audio(peer, audio_port);
   }
 

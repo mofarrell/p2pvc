@@ -12,6 +12,7 @@ static connection_t *cons;
 static size_t conslen;
 static pthread_mutex_t conslock;
 static pthread_mutex_t buffer_lock;
+static CvCapture* cv_cap;
 
 static void callback(connection_t *con, void *data, size_t length) {
   pthread_mutex_lock(&buffer_lock);
@@ -25,6 +26,11 @@ static void new_callback(connection_t *con, void *data, size_t datalen) {
   cons = realloc(cons, conslen * sizeof(connection_t));
   memcpy(&(cons[conslen-1]), con, sizeof(connection_t));
   pthread_mutex_unlock(&conslock);
+}
+
+void video_shutdown(int signal) {
+  cvReleaseCapture( &cv_cap );
+  end_screen();
 }
 
 static void *dolisten(void *args) {
@@ -53,7 +59,7 @@ int start_video(char *peer, char *port, int width, int height) {
   IplImage* color_img;
   IplImage* resize_img = cvCreateImage(cvSize(VIDEO_WIDTH,VIDEO_HEIGHT),8,3);  
 
-  CvCapture* cv_cap = cvCaptureFromCAM(0);
+  cv_cap = cvCaptureFromCAM(0);
   for(;;) {
     /* Get each frame */
     color_img = cvQueryFrame(cv_cap);
@@ -66,7 +72,6 @@ int start_video(char *peer, char *port, int width, int height) {
 
   /* Housekeeping */
   cvReleaseCapture( &cv_cap );
-  cvDestroyWindow("Video");
   end_screen();
   return 0;
 }
