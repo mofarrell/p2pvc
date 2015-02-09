@@ -24,9 +24,9 @@ void audio_shutdown(int signal) {
 }
 
 void all_shutdown(int signal) {
-  printf("SHUTTIND DOWN\n");
   video_shutdown(signal);
   audio_shutdown(signal);
+  exit(0);
 }
 
 void get_dimensions(char dim[], int *width, int *height) {
