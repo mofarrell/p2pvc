@@ -20,3 +20,13 @@ Video chat with yourself to test the camera.
 * ncurses
 
 If you are running Ubuntu: `sudo apt-get install libncurses-dev libopencv-dev libpulse-dev`
+
+### Known problems and resolutions
+
+#### Black and white
+
+This happens when p2pvc thinks the terminal doesn't have enough colors to display all 256.  Try `export TERM=xterm-color256` or equivalent to get it working.
+
+#### No connection made
+
+p2pvc does not get around NAT, so you may need to port forward.  It uses ports 55555 and 55556 for audio and video respectively.
