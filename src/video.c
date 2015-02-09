@@ -4,6 +4,7 @@
 
 #include <p2plib.h>
 #include <display.h>
+#include <video.h>
 
 //#define VIDEO_WIDTH ((COLS / 8) * 8)
 //#define VIDEO_HEIGHT (LINES)
@@ -16,6 +17,7 @@ static size_t conslen;
 static pthread_mutex_t conslock;
 static pthread_mutex_t buffer_lock;
 static CvCapture* cv_cap;
+static int disp_bandwidth = 0;
 static int width;
 static int height;
 static int depth = 3;
@@ -23,6 +25,9 @@ static int depth = 3;
 static void callback(connection_t *con, void *data, size_t length) {
   pthread_mutex_lock(&buffer_lock);
   draw_image((char *)data, width, height, width * depth, depth);
+  if (disp_bandwidth) {
+
+  }
   pthread_mutex_unlock(&buffer_lock);
 }
 
@@ -47,7 +52,11 @@ static void *dolisten(void *args) {
   return NULL;
 }
 
-int start_video(char *peer, char *port, int w, int h) {
+int start_video(char *peer, char *port, vid_options_t *vopt) {
+
+  int w = vopt->width;
+  int h = vopt->height;
+  disp_bandwidth = vopt->disp_bandwidth;
   init_screen();
   pthread_mutex_init(&conslock, NULL);
   pthread_mutex_init(&buffer_lock, NULL);
@@ -95,7 +104,12 @@ int start_video(char *peer, char *port, int w, int h) {
 
 #ifdef VIDEOONLY
 int main(int argc, char *argv[]) {
-  return start_video(argv[1], "55556", 100, 40);
+  vid_options_t vopt;
+  memset(&vopt, 0, sizeof(vid_options_t));
+  vopt.width = 100;
+  vopt.height = 40;
+  vopt.disp_bandwidth = 0;
+  return start_video(argv[1], "55556", &vopt);
 }
 #endif
 
