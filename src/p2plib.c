@@ -27,7 +27,7 @@ static long delta = -1;
 
 long p2p_bandwidth(size_t packetsize) {
   if (delta == -1) {
-    return (0);
+    return 0;
   } else {
     return (packetsize/delta);
   }
@@ -46,7 +46,7 @@ int p2p_data(connection_t *con, void *data, size_t datasize,
              connection_t **cons, size_t *conslen) {
 
   if (P2P_HEADER != ((p2p_header_t *)data)->check) {
-    return (0);
+    return 0;
   }
 
   if (((p2p_header_t *)data)->act == PASS_HEADER) { 
@@ -164,7 +164,7 @@ int p2p_init(int port, int *sockfd) {
   }
 
   /* success */
-  return (0);
+  return 0;
 }
 
 
