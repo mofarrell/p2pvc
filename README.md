@@ -17,3 +17,6 @@ Video chat with yourself to test the camera.
 
 * OpenCV
 * PulseAudio
+* ncurses
+
+If you are running Ubuntu: `sudo apt-get install libncurses-dev libopencv-dev libpulse-dev`
