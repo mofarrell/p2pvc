@@ -13,7 +13,7 @@ Make the binary.
 
     make
 
-Video chat with yourself to test the camera.
+Video chat with yourself to test the camera. (Be sure to mute your mic or speakers or you'll get feedback!)
 
     ./p2pvc 127.0.0.1 -v
 
