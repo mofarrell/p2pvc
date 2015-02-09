@@ -21,13 +21,12 @@ static struct timespec prevPacket, currPacket;
 static long delta = -1;
 
 
-/* @brief gives the delta between the two most recent received packets
- * @return a long that represents the delta in nanoseconds, -1 if only
- *  one packet has been received thus far
+/* @brief gives the bandwidth for a given packet size 
+ * @return a long that represents the bandwidth in bytes/nanoseconds
  */
 
-long p2p_bandwith(void) {
-  return (delta);
+long p2p_bandwidth(size_t packetsize) {
+  return (packetsize/delta);
 }
 
 
@@ -269,13 +268,13 @@ int p2p_listener(connection_t **cons, size_t *conslen,
     int recv_len = recvfrom(socket, buf, max_packet_size, UDP_FLAGS, (struct sockaddr *)&(con.addr), &(con.addr_len));
 
 
-     if (delta == -1) {
-      clock_gettime(CLOCK_MONOTONIC, &prevPacket);
-      delta = 0;
-     } else {
-       clock_gettime(CLOCK_MONOTONIC, &currPacket);
-       delta = currPacket.tv_nsec - prevPacket.tv_nsec;
-     }
+    if (delta == -1) {
+     clock_gettime(CLOCK_MONOTONIC, &prevPacket);
+     delta = 0;
+    } else {
+      clock_gettime(CLOCK_MONOTONIC, &currPacket);
+      delta = currPacket.tv_nsec - prevPacket.tv_nsec;
+    }
 
     /* Handle error UDP style (try again). */
     if (recv_len < 0) {
