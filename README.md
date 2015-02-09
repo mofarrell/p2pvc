@@ -1,15 +1,21 @@
 # p2pvc
 A point to point color terminal video chat.
-![demo]
-(http://i.imgur.com/ziRPCWE.png)
-[and here's a video](http://gfycat.com/HideousSpiffyAdder)
 
-# Compilation
+![demo]
+(http://giant.gfycat.com/HideousSpiffyAdder.gif)
+
+[and here's a still image](http://i.imgur.com/ziRPCWE.png)
+
+# Installation
+
+Arch users can install `p2pvc-git` from [the AUR](https://aur.archlinux.org/packages/p2pvc-git/)
+
+### Build from source
 Make the binary.
 
     make
 
-Video chat with yourself to test the camera.
+Video chat with yourself to test the camera. (Be sure to mute your mic or speakers or you'll get feedback!)
 
     ./p2pvc 127.0.0.1 -v
 
