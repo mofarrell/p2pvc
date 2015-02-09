@@ -26,7 +26,11 @@ static long delta = -1;
  */
 
 long p2p_bandwidth(size_t packetsize) {
-  return (packetsize/delta);
+  if (delta == -1) {
+    return (0);
+  } else {
+    return (packetsize/delta);
+  }
 }
 
 
