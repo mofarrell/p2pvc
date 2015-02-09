@@ -119,7 +119,7 @@ are defaulted to 1.
 #endif 
 
 #ifndef PA_USE_ALSA
-#define PA_USE_ALSA 1
+#define PA_USE_ALSA 0
 #elif (PA_USE_ALSA != 0) && (PA_USE_ALSA != 1)
 #undef PA_USE_ALSA
 #define PA_USE_ALSA 1
