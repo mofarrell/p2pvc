@@ -30,6 +30,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#define PA_USE_ALSA 1
 #include <portaudio.h>
 #include "pa_ringbuffer.h"
 #include "pa_util.h"
@@ -43,7 +44,6 @@
 #define MIN_SIZE_TO_SEND (512)
 
 #define MIN(x, y) ((x) > (y) ? (y) : (x))
-
 /* Select sample format. */
 #if 0
 #define PA_SAMPLE_TYPE  paFloat32
@@ -208,6 +208,11 @@ int start_audio(char *peer, char *port) {
   err = Pa_Initialize();
   if (err != paNoError) goto done;
 
+  //PaHostApiIndex api_count = Pa_GetHostApiCount();
+  //PaHostApiIndex api_index = Pa_GetDefaultHostApi();
+  //const PaHostApiInfo *api_info = Pa_GetHostApiInfo(api_index);
+  //printf("Got api %s\n", api_info->name);
+
   /* Set up output stream. */
   outputParameters.device = Pa_GetDefaultOutputDevice(); /* default output device */
   if (outputParameters.device == paNoDevice) {
@@ -231,6 +236,7 @@ int start_audio(char *peer, char *port) {
   if (err != paNoError) goto done;
 
   /* Set up input stream. */
+  
   inputParameters.device = Pa_GetDefaultInputDevice(); /* default input device */
   if (inputParameters.device == paNoDevice) {
     fprintf(stderr,"Error: No default input device.\n");
