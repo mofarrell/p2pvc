@@ -3,6 +3,8 @@ A point to point color terminal video chat.
 ![demo]
 (http://giant.gfycat.com/HideousSpiffyAdder.gif)
 
+[and here's a still image](http://i.imgur.com/ziRPCWE.png)
+
 # Installation
 
 Arch users can install `p2pvc-git` from [the AUR](https://aur.archlinux.org/packages/p2pvc-git/)
