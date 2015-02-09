@@ -1,5 +1,6 @@
 #include <display.h>
 #include <assert.h>
+#include <stdlib.h>
 
 #define min(a,b) ((a)>(b)?(b):(a))
 
@@ -41,10 +42,10 @@ void end_screen(void) {
 
 /* allow us to directly map to the 216 colors ncurses makes available */
 static inline int get_color(int r, int g, int b) {
-  return 16+r/48*36+g/48*6+b/48; 
+  return 16+r/48*36+g/48*6+b/48;
 }
 
-const char ascii_values[] = "  ..::--===+++***###%%%%@@@@@";
+const char ascii_values[] = " ..::--==+++***###%%%%%%%%@@@@@@@";
 
 int draw_image(char *data, int width, int height, int step, int channels) {
   char ascii_image[width*height];
@@ -52,18 +53,19 @@ int draw_image(char *data, int width, int height, int step, int channels) {
   unsigned char b, g, r;
   int offset = 0;
   int intensity;
-  for (y=0; y<height; y++){
-    for (x=0; x<width; x++){
+  for (y=0; y < height && y < LINES; y++){
+    for (x=0; x < width && x < COLS; x++){
       b = data[step * y + x * channels] + offset;
       g = data[step * y + x * channels + 1] + offset;
       r = data[step * y + x * channels + 2] + offset;
-      intensity = (int)(0.2126*r + 0.7152*g + 0.0722*b);
-      ascii_image[y*width + x] = ascii_values[min((intensity + 40) / 9, sizeof(ascii_values))];
-      int color = get_color(r,g,b);
+      //intensity = abs((int)(0.2126*r + 0.7152*g + 0.0722*b));
+      intensity = (sizeof(ascii_values) - 1) * ((r/255.0 + g/255.0 + b/255.0) / 3);
+      ascii_image[y * width + x] = ascii_values[intensity];
+      int color = get_color(r, g, b);
       if (COLORS < 255) {
         color = 0;
       }
-      mvaddch(y, x, ascii_image[y*width + x]|COLOR_PAIR(color));
+      mvaddch(y, x, ascii_image[y * width + x]|COLOR_PAIR(color));
     }
   } 
 

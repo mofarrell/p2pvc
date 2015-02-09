@@ -8,6 +8,9 @@
 #include <audio.h>
 #include <video.h>
 
+#define DEFAULT_WIDTH 100
+#define DEFAULT_HEIGHT 40
+
 typedef struct {
   char *ipaddr;
   char *port;
@@ -54,7 +57,7 @@ int main(int argc, char **argv) {
   char *video_port = "55556";
   int spawn_video = 0;
   int c;
-  int width, height;
+  int width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT;
   while (optind < argc) {
     if ((c = getopt (argc, argv, "vd:A:V:")) != -1) {
       switch (c) {
