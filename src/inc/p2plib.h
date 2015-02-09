@@ -2,6 +2,10 @@
  * @brief Defines the interface of p2plib.
  */
 
+#ifndef P2PLIB_H
+#define P2PLIB_H
+
+
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <pthread.h>
@@ -46,3 +50,4 @@ int p2p_listener(connection_t **cons, size_t *conslen,
 
 int p2p_init(int port, int *sockfd);
 
+#endif /* P2PLIB_H */
