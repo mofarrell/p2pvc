@@ -273,12 +273,12 @@ int p2p_listener(connection_t **cons, size_t *conslen,
 
 
     if (delta == -1) {
-     clock_gettime(CLOCK_MONOTONIC, &prevPacket);
-     delta = 0;
+      clock_gettime(CLOCK_MONOTONIC, &prevPacket);
+      delta = 0;
     } else {
       clock_gettime(CLOCK_MONOTONIC, &currPacket);
       delta = currPacket.tv_nsec - prevPacket.tv_nsec;
-     clock_gettime(CLOCK_MONOTONIC, &prevPacket);
+      clock_gettime(CLOCK_MONOTONIC, &prevPacket);
     }
 
     /* Handle error UDP style (try again). */
