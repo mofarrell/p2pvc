@@ -27,6 +27,26 @@ Video chat with yourself to test the camera. (Be sure to mute your mic or speake
 
 If you are running Ubuntu: `sudo apt-get install libncurses-dev libopencv-dev libpulse-dev`
 
+### Usage
+
+#### Audio only
+
+    ./p2pvc [ip address]
+
+#### Flags
+
+`-v` flag enables video chat.
+
+     ./p2pvc [ip address] -v
+
+`-d` flag allows you to specify the dimension of the video in either `[width]x[height]` or `[width]:[height]` format. Note that both users should specify the same dimension.
+
+     ./p2pvc [ip address] -v -d 200x50
+
+`-A` and `-V` flags allow you to specify the port the audio and video run on respectively.
+
+     ./p2pvc [ip address] -v -A 1337 -V 1338
+
 ### Known problems and resolutions
 
 #### Black and white
