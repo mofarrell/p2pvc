@@ -31,7 +31,7 @@ If you are running Ubuntu: `sudo apt-get install libncurses-dev libopencv-dev li
 
 #### Black and white
 
-This happens when p2pvc thinks the terminal doesn't have enough colors to display all 256.  Try `export TERM=xterm-color256` or equivalent to get it working.
+This happens when p2pvc thinks the terminal doesn't have enough colors to display all 256.  Try `export TERM=xterm-256color` or equivalent to get it working.
 
 #### No connection made
 
