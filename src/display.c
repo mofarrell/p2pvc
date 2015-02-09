@@ -72,3 +72,29 @@ int draw_image(char *data, int width, int height, int step, int channels) {
   refresh();
   return 0;
 }
+
+int draw_image_braille(char *data, int width, int height, int step, int channels) {
+  char ascii_image[width*height];
+  int y, x;
+  unsigned char b, g, r;
+  int offset = 0;
+  int intensity;
+  for (y=0; y < height && y < LINES; y++){
+    for (x=0; x < width && x < COLS; x++){
+      b = data[step * y + x * channels] + offset;
+      g = data[step * y + x * channels + 1] + offset;
+      r = data[step * y + x * channels + 2] + offset;
+      //intensity = abs((int)(0.2126*r + 0.7152*g + 0.0722*b));
+      intensity = (sizeof(ascii_values) - 1) * ((r/255.0 + g/255.0 + b/255.0) / 3);
+      ascii_image[y * width + x] = ascii_values[intensity];
+      int color = get_color(r, g, b);
+      if (COLORS < 255) {
+        color = 0;
+      }
+      mvaddch(y, x, ascii_image[y * width + x]|COLOR_PAIR(color));
+    }
+  } 
+
+  refresh();
+  return 0;
+}
