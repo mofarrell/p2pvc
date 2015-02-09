@@ -73,3 +73,18 @@ int draw_image(char *data, int width, int height, int step, int channels) {
   return 0;
 }
 
+int write_bandwidth(char *bandstr, int bandlen, int width, int height) {
+  int i;
+
+  if (width < bandlen) {
+    /* can't write it to the screen */
+    return -1;
+  }
+
+  for (i = width - bandlen; i < width; i++) {
+    mvaddch(0, i, bandstr[i - width + bandlen]);
+  }
+
+  refresh();
+  return 0;
+}

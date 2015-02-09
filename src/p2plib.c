@@ -24,12 +24,11 @@ static long delta = -1;
 /* @brief gives the bandwidth for a given packet size 
  * @return a long that represents the bandwidth in bytes/nanoseconds
  */
-
-long p2p_bandwidth(size_t packetsize) {
+double p2p_bandwidth(size_t packetsize) {
   if (delta == -1) {
     return 0;
   } else {
-    return (packetsize/delta);
+    return (((double)packetsize/ (double) delta));
   }
 }
 

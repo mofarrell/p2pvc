@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
   vopt.height = DEFAULT_HEIGHT;
 
   while (optind < argc) {
-    if ((c = getopt (argc, argv, "vd:A:V:")) != -1) {
+    if ((c = getopt (argc, argv, "bvd:A:V:")) != -1) {
       switch (c) {
         case 'v':
           spawn_video = 1;
