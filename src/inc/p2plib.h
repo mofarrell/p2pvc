@@ -31,8 +31,9 @@ typedef struct {
   p2p_action_t act;
 } p2p_header_t;
 
-int p2p_send_pass(connection_t *con, char *password);
+long p2p_bandwidth(size_t packetsize);
 
+int p2p_send_pass(connection_t *con, char *password);
 
 int p2p_data(connection_t *con, void *data, size_t datalen, connection_t **cons, size_t *conlen);
 
