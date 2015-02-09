@@ -13,8 +13,26 @@
 #include <sys/types.h>
 #include <stdlib.h>
 #include <netinet/in.h>
+#include <time.h>
 
 #define UDP_FLAGS         0
+
+static struct timespec prevPacket, currPacket;
+static long delta = -1;
+
+
+/* @brief gives the bandwidth for a given packet size 
+ * @return a long that represents the bandwidth in bytes/nanoseconds
+ */
+
+long p2p_bandwidth(size_t packetsize) {
+  if (delta == -1) {
+    return (0);
+  } else {
+    return (packetsize/delta);
+  }
+}
+
 
 /* @brief tells if a packet is used for p2p reasons
  * @param con who sent the data
@@ -247,10 +265,21 @@ int p2p_listener(connection_t **cons, size_t *conslen,
   connection_t con;
   char buf[max_packet_size];
 
+
   /* Loop on recvfrom. */
   while (1) {
     memset(buf, 0, max_packet_size);
     int recv_len = recvfrom(socket, buf, max_packet_size, UDP_FLAGS, (struct sockaddr *)&(con.addr), &(con.addr_len));
+
+
+    if (delta == -1) {
+      clock_gettime(CLOCK_MONOTONIC, &prevPacket);
+      delta = 0;
+    } else {
+      clock_gettime(CLOCK_MONOTONIC, &currPacket);
+      delta = currPacket.tv_nsec - prevPacket.tv_nsec;
+      clock_gettime(CLOCK_MONOTONIC, &prevPacket);
+    }
 
     /* Handle error UDP style (try again). */
     if (recv_len < 0) {
