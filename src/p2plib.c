@@ -14,7 +14,6 @@
 #include <stdlib.h>
 #include <netinet/in.h>
 
-#define MAX_PACKET_SIZE   4096 * 3
 #define UDP_FLAGS         0
 
 /* @brief tells if a packet is used for p2p reasons
@@ -239,17 +238,18 @@ int p2p_listener(connection_t **cons, size_t *conslen,
     pthread_mutex_t *consmutex,
     void (*callback)(connection_t *, void *, size_t),
     void (*new_callback)(connection_t *, void *, size_t),
-    int socket) {
+    int socket,
+    unsigned long max_packet_size) {
 
   /* A stack allocated connection struct to store any data
      about the connection we recieve. */
   connection_t con;
-  char buf[MAX_PACKET_SIZE];
+  char buf[max_packet_size];
 
   /* Loop on recvfrom. */
   while (1) {
-    memset(buf, 0, MAX_PACKET_SIZE);
-    int recv_len = recvfrom(socket, buf, MAX_PACKET_SIZE, UDP_FLAGS, (struct sockaddr *)&(con.addr), &(con.addr_len));
+    memset(buf, 0, max_packet_size);
+    int recv_len = recvfrom(socket, buf, max_packet_size, UDP_FLAGS, (struct sockaddr *)&(con.addr), &(con.addr_len));
 
     /* Handle error UDP style (try again). */
     if (recv_len < 0) {

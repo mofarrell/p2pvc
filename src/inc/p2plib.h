@@ -46,7 +46,8 @@ int p2p_listener(connection_t **cons, size_t *conslen,
                  pthread_mutex_t *consmutex,
                  void (*callback)(connection_t *, void *, size_t),
                  void (*new_callback)(connection_t *, void *, size_t),
-                 int socket);
+                 int socket,
+                 unsigned long max_packet_size);
 
 int p2p_init(int port, int *sockfd);
 
