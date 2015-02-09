@@ -96,6 +96,6 @@ int start_video(char *peer, char *port, int w, int h) {
 
 #ifdef VIDEOONLY
 int main(int argc, char *argv[]) {
-  return start_video(argv);
+  return start_video(argv[1], "55556", 100, 40);
 }
 #endif
