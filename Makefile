@@ -11,7 +11,7 @@ OBJS=$(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
 CFLAGS+=-O2 -Wall
 CFLAGS+=`pkg-config --cflags opencv`
 CFLAGS_DEBUG+=-O0 -g3 -Werror -DDEBUG
-LDFLAGS+=-lpthread -lncurses -lpulse
+LDFLAGS+=-lpthread -lncurses -lportaudio
 LDFLAGS+=`pkg-config --libs opencv`
 
 all: p2pvc

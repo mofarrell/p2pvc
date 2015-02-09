@@ -1,268 +1,142 @@
 /***
  * p2pvc
  ***/
-
+/*
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files
+ * (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge,
+ * publish, distribute, sublicense, and/or sell copies of the Software,
+ * and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR
+ * ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+ * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 #include <p2plib.h>
 
-#include <signal.h>
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
 #include <assert.h>
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <getopt.h>
-#include <locale.h>
+#include <portaudio.h>
+#include "pa_ringbuffer.h"
+#include "pa_util.h"
 
-#include <pulse/pulseaudio.h>
+#define SAMPLE_RATE  (44100)
+#define FRAMES_PER_BUFFER (512)
+#define NUM_CHANNELS    (2)
+#define NUM_WRITES_PER_BUFFER   (4)
 
-static pa_context *context = NULL;
-static pa_stream *in_stream = NULL;
-static pa_stream *out_stream = NULL;
-static pa_mainloop_api *mainloop_api = NULL;
-static pa_mainloop *mainloop = NULL;
+#define SIZE_TO_SEND (1024)
+#define MIN_SIZE_TO_SEND (512)
 
-static char *in_stream_name = "InputStream", *client_name = "AudioChatIn", *in_device = NULL;
-static char *out_stream_name = "OutputStream", *out_device = NULL;
+#define MIN(x, y) ((x) > (y) ? (y) : (x))
 
-int poll = 0;
+/* Select sample format. */
+#if 0
+#define PA_SAMPLE_TYPE  paFloat32
+typedef float SAMPLE;
+#define SAMPLE_SILENCE  (0.0f)
+#define PRINTF_S_FORMAT "%.8f"
+#elif 0
+#define PA_SAMPLE_TYPE  paInt16
+typedef short SAMPLE;
+#define SAMPLE_SILENCE  (0)
+#define PRINTF_S_FORMAT "%d"
+#elif 0
+#define PA_SAMPLE_TYPE  paInt8
+typedef char SAMPLE;
+#define SAMPLE_SILENCE  (0)
+#define PRINTF_S_FORMAT "%d"
+#else
+#define PA_SAMPLE_TYPE  paUInt8
+typedef unsigned char SAMPLE;
+#define SAMPLE_SILENCE  (128)
+#define PRINTF_S_FORMAT "%d"
+#endif
 
-static int verbose = 0;
+typedef struct {
+  SAMPLE             *inputRingBufferData;
+  PaUtilRingBuffer    inputRingBuffer;
+  SAMPLE             *outputRingBufferData;
+  PaUtilRingBuffer    outputRingBuffer;
+} paTestData;
 
-#define BUFFER_SIZE (1024*10)
-static size_t read_ptr = 0;
-static size_t write_ptr = 0;
-static uint8_t buffer[BUFFER_SIZE];
+static paTestData data;
 
-
-static pa_volume_t volume = PA_VOLUME_NORM;
-
-#define CHANNELS 2
-static pa_sample_spec sample_spec = { 
-  .format = PA_SAMPLE_U8, 
-  .rate = 44100,
-  .channels = CHANNELS
-};
-
-#define LATENCY 4096
-#define PROCESS_TIME 1024
-
-static pa_buffer_attr buffer_attr = {
-  .maxlength = (uint32_t)-1,
-  .tlength = (uint32_t)LATENCY,
-  .prebuf = (uint32_t)-1,
-  .minreq = (uint32_t)PROCESS_TIME,
-  .fragsize = (uint32_t)LATENCY
-};
-
+/* Connection structure. */
 static connection_t *cons;
 static size_t conslen;
 static pthread_mutex_t conslock;
-static pthread_mutex_t buffer_lock;
 
-/* A shortcut for terminating the application */
-static void quit(int ret) {
-  assert(mainloop_api);
-  mainloop_api->quit(mainloop_api, ret);
+/* This routine will be called by the PortAudio engine when audio is needed.
+ ** It may be called at interrupt level on some machines so don't do anything
+ ** that could mess up the system like calling malloc() or free().
+ */
+static int readCallback(const void *inputBuffer, void *outputBuffer,
+    unsigned long framesPerBuffer,
+    const PaStreamCallbackTimeInfo* timeInfo,
+    PaStreamCallbackFlags statusFlags,
+    void *userData) {
+  paTestData *data = (paTestData*)userData;
+  ring_buffer_size_t elementsWriteable = PaUtil_GetRingBufferWriteAvailable(&data->inputRingBuffer);
+  ring_buffer_size_t elementsToWrite = MIN(elementsWriteable, (ring_buffer_size_t)(framesPerBuffer * NUM_CHANNELS));
+  const SAMPLE *rptr = (const SAMPLE*)inputBuffer;
+
+  (void) outputBuffer; /* Prevent unused variable warnings. */
+  (void) timeInfo;
+  (void) statusFlags;
+  (void) userData;
+
+  PaUtil_WriteRingBuffer(&data->inputRingBuffer, rptr, elementsToWrite);
+
+  return paContinue;
 }
 
-/* This is called whenever new data may be written to the stream */
-static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
-  assert(s && length);
+/* This routine will be called by the PortAudio engine when audio is needed.
+ ** It may be called at interrupt level on some machines so don't do anything
+ ** that could mess up the system like calling malloc() or free().
+ */
+static int writeCallback(const void *inputBuffer, void *outputBuffer,
+    unsigned long framesPerBuffer,
+    const PaStreamCallbackTimeInfo* timeInfo,
+    PaStreamCallbackFlags statusFlags,
+    void *userData) {
+  paTestData *data = (paTestData*)userData;
+  ring_buffer_size_t elementsToPlay = PaUtil_GetRingBufferReadAvailable(&data->outputRingBuffer);
+  ring_buffer_size_t elementsToRead = MIN(elementsToPlay, (ring_buffer_size_t)(framesPerBuffer * NUM_CHANNELS));
+  SAMPLE* wptr = (SAMPLE*)outputBuffer;
 
-  pthread_mutex_lock(&buffer_lock);
-  if (verbose) {
-    fprintf(stderr, "write length: %lu\n", length);
+  memset(wptr, SAMPLE_SILENCE, framesPerBuffer * NUM_CHANNELS * sizeof(SAMPLE));
 
-    fprintf(stderr, "read: %lu, write: %lu, length: %lu\n", read_ptr, write_ptr, length); 
-  }
-  if (read_ptr < write_ptr && write_ptr + length >= BUFFER_SIZE) {
-    length = BUFFER_SIZE - write_ptr;
-  } else if (write_ptr <= read_ptr && write_ptr + length >= read_ptr) {
-    length = read_ptr - write_ptr;
-  }
-  if (verbose) {
-    fprintf(stderr, "read: %lu, write: %lu, length: %lu\n", read_ptr, write_ptr, length); 
-  }
+  (void) inputBuffer; /* Prevent unused variable warnings. */
+  (void) timeInfo;
+  (void) statusFlags;
+  (void) userData;
 
-  assert(write_ptr + length <= BUFFER_SIZE);
-  if (pa_stream_write(out_stream, (uint8_t*) buffer + write_ptr, length, NULL, 0, PA_SEEK_RELATIVE) < 0) {
-    fprintf(stderr, ("pa_stream_write() failed: %s\n"), pa_strerror(pa_context_errno(context)));
-    quit(1);
-    return;
-  }
-  write_ptr = (write_ptr + length) % BUFFER_SIZE;
-  pthread_mutex_unlock(&buffer_lock);
+  PaUtil_ReadRingBuffer(&data->outputRingBuffer, wptr, elementsToRead);
+
+  return paContinue;
 }
 
-/* This is called whenever new data may be written to the stream */
-static void stream_read_callback(pa_stream *s, size_t length, void *userdata) {
-  const void *data;
-  assert(s && length > 0);
+static void callback(connection_t *con, void *buf, size_t length) {
+  ring_buffer_size_t elementsWriteable = PaUtil_GetRingBufferWriteAvailable(&data.outputRingBuffer);
+  ring_buffer_size_t elementsToWrite = MIN(elementsWriteable, length / data.outputRingBuffer.elementSizeBytes);
+  const SAMPLE *rptr = (const SAMPLE*)buf;
 
-  if (pa_stream_peek(s, &data, &length) < 0) {
-    fprintf(stderr, ("Could not peek stream.\n"));
-  }
-  assert(length > 0);
-
-  if (verbose) {
-    fprintf(stderr, "reading: %lu\n", length);
-  }
-  
-  p2p_broadcast(&cons, &conslen, &conslock, data, length); 
-
-  if (pa_stream_drop(s) < 0) {
-    fprintf(stderr, ("Could not drop fragment.\n"));
-  }
-}
-
-/* This routine is called whenever the stream state changes */
-static void stream_state_callback(pa_stream *s, void *userdata) {
-  assert(s);
-
-  switch (pa_stream_get_state(s)) {
-    case PA_STREAM_CREATING:
-    case PA_STREAM_TERMINATED:
-      break;
-
-    case PA_STREAM_READY:
-      if (verbose) {
-        const pa_buffer_attr *a;
-        char cmt[PA_CHANNEL_MAP_SNPRINT_MAX], sst[PA_SAMPLE_SPEC_SNPRINT_MAX];
-
-        if (s == out_stream) {
-          poll = 1;
-        }
-
-        fprintf(stderr, ("Stream successfully created.\n"));
-
-        if (!(a = pa_stream_get_buffer_attr(s))) {
-          fprintf(stderr, ("pa_stream_get_buffer_attr() failed: %s\n"), pa_strerror(pa_context_errno(pa_stream_get_context(s))));
-        } else {
-          fprintf(stderr, ("Buffer metrics: maxlength=%u, fragsize=%u\n"), a->maxlength, a->fragsize);
-        }
-
-        fprintf(stderr, ("Using sample spec '%s', channel map '%s'.\n"),
-            pa_sample_spec_snprint(sst, sizeof(sst), pa_stream_get_sample_spec(s)),
-            pa_channel_map_snprint(cmt, sizeof(cmt), pa_stream_get_channel_map(s)));
-
-        fprintf(stderr, ("Connected to device %s (%u, %ssuspended).\n"),
-            pa_stream_get_device_name(s),
-            pa_stream_get_device_index(s),
-            pa_stream_is_suspended(s) ? "" : "not ");
-      }
-      break;
-
-    case PA_STREAM_FAILED:
-    default:
-      fprintf(stderr, ("Stream errror: %s\n"), pa_strerror(pa_context_errno(pa_stream_get_context(s))));
-      quit(1);
-  }
-}
-
-/* This is called whenever the context status changes */
-static void context_state_callback(pa_context *c, void *userdata) {
-  assert(c);
-
-  switch (pa_context_get_state(c)) {
-    case PA_CONTEXT_CONNECTING:
-    case PA_CONTEXT_AUTHORIZING:
-    case PA_CONTEXT_SETTING_NAME:
-      break;
-
-    case PA_CONTEXT_READY: {
-      assert(c && !in_stream && !out_stream);
-
-
-      if (verbose) {
-        fprintf(stderr, ("Connection established.\n"));
-      }
-
-      assert(pa_sample_spec_valid(&sample_spec));
-
-
-      out_stream = pa_stream_new(c, out_stream_name, &sample_spec, NULL);
-      if (!out_stream) {
-        fprintf(stderr, "No out stream %s\n", pa_strerror(pa_context_errno(context)));
-      }
-
-      pa_stream_set_state_callback(out_stream, stream_state_callback, NULL);
-      pa_stream_set_write_callback(out_stream, stream_write_callback, NULL);
-      pa_cvolume cvolume;
-      pa_stream_connect_playback(out_stream, out_device, &buffer_attr, PA_STREAM_ADJUST_LATENCY, pa_cvolume_set(&cvolume, CHANNELS, volume), NULL);
-
-
-      in_stream = pa_stream_new(c, in_stream_name, &sample_spec, NULL);
-      if (!in_stream) {
-        fprintf(stderr, "No stream %s\n", pa_strerror(pa_context_errno(context)));
-      }
-      assert(in_stream);
-
-      pa_stream_set_state_callback(in_stream, stream_state_callback, NULL);
-      pa_stream_set_read_callback(in_stream, stream_read_callback, NULL);
-      pa_stream_connect_record(in_stream, in_device, &buffer_attr, PA_STREAM_ADJUST_LATENCY);
-      break;
-    }
-
-    case PA_CONTEXT_TERMINATED:
-                           quit(0);
-                           break;
-
-    case PA_CONTEXT_FAILED:
-    default:
-                           fprintf(stderr, ("Connection failure: %s\n"), pa_strerror(pa_context_errno(c)));
-                           quit(1);
-  }
-}
-
-/* UNIX signal to quit recieved */
-static void exit_signal_callback(pa_mainloop_api*m, pa_signal_event *e, int sig, void *userdata) {
-  if (verbose) {
-    fprintf(stderr, ("Got SIGINT, exiting.\n"));
-  }
-  quit(0);
-}
-
-static void callback(connection_t *con, void *data, size_t length) {
-  pthread_mutex_lock(&buffer_lock);
-
-  size_t length1 = MIN(length, BUFFER_SIZE - read_ptr);
-  size_t length2 = length - length1;
-
-  if (write_ptr > read_ptr && write_ptr < read_ptr + length1) {
-    write_ptr = read_ptr + length1;
-  }
-  if (length2 != 0 && write_ptr < length2) {
-    write_ptr = length2;
-  }
-  assert(length1 + length2 == length);
-
-  if (verbose) {
-    fprintf(stderr, "length1: %lu, length2: %lu\n", length1, length2);
-  }
-
-  assert(read_ptr + length1 <= BUFFER_SIZE);
-  memcpy(&buffer[read_ptr], data, length1);
-  if (verbose) {
-    fprintf(stderr, "read: %lu\n", read_ptr);
-  }
-  read_ptr = (read_ptr + length1) % BUFFER_SIZE;
-  if (verbose) {
-    fprintf(stderr, "read: %lu\n", read_ptr);
-  }
-
-  if (length2 != 0) {
-    assert(length2 <= BUFFER_SIZE);
-    memcpy(buffer, (uint8_t *)data + length1, length2);
-    read_ptr = length2;
-  }
-
-  if (verbose) {
-    fprintf(stderr, "read: %lu\n", read_ptr);
-  }
-  pthread_mutex_unlock(&buffer_lock);
-
-  kill(getpid(), SIGALRM);
+  PaUtil_WriteRingBuffer(&data.outputRingBuffer, rptr, elementsToWrite);
 }
 
 static void new_callback(connection_t *con, void *data, size_t datalen) {
@@ -281,21 +155,105 @@ static void *dolisten(void *args) {
   return NULL;
 }
 
-static void audio_poll(pa_mainloop_api*m, pa_signal_event *e, int sig, void *userdata) {
-  if (out_stream) {
-    size_t length = pa_stream_writable_size(out_stream);
-    if (length > 0) {
-      stream_write_callback(out_stream, length, NULL);
-    }
-  }
-
-  return;
+static unsigned NextPowerOf2(unsigned val) {
+  val--;
+  val = (val >> 1) | val;
+  val = (val >> 2) | val;
+  val = (val >> 4) | val;
+  val = (val >> 8) | val;
+  val = (val >> 16) | val;
+  return ++val;
 }
 
-/* Starts audio listenning and emission. */
 int start_audio(char *peer, char *port) {
+  PaStreamParameters  inputParameters,
+                      outputParameters;
+  PaStream *inputStream;
+  PaStream *outputStream;
+  PaError             err = paNoError;
+  unsigned            numSamples;
+  unsigned            numBytes;
+
+  /* Make a ring buffer that will buffer about half a second.  Reasonable
+   * level of latency before droping.
+   * Make one for both input and output.*/
+  numSamples = NextPowerOf2((unsigned)(SAMPLE_RATE * 0.5 * NUM_CHANNELS));
+  numBytes = numSamples * sizeof(SAMPLE);
+  data.inputRingBufferData = (SAMPLE *) PaUtil_AllocateMemory(numBytes);
+  if (data.inputRingBufferData == NULL)
+  {
+    fprintf(stderr, "Could not allocate ring buffer data.\n");
+    goto done;
+  }
+
+  if (PaUtil_InitializeRingBuffer(&data.inputRingBuffer, sizeof(SAMPLE), numSamples, data.inputRingBufferData) < 0)
+  {
+    fprintf(stderr, "Failed to initialize ring buffer. Size is not power of 2 ?\n");
+    goto done;
+  }
+
+  data.outputRingBufferData = (SAMPLE *) PaUtil_AllocateMemory(numBytes);
+  if (data.outputRingBufferData == NULL)
+  {
+    fprintf(stderr, "Could not allocate ring buffer data.\n");
+    goto done;
+  }
+
+  if (PaUtil_InitializeRingBuffer(&data.outputRingBuffer, sizeof(SAMPLE), numSamples, data.outputRingBufferData) < 0)
+  {
+    fprintf(stderr, "Failed to initialize ring buffer. Size is not power of 2 ?\n");
+    goto done;
+  }
+
+  err = Pa_Initialize();
+  if (err != paNoError) goto done;
+
+  /* Set up output stream. */
+  outputParameters.device = Pa_GetDefaultOutputDevice(); /* default output device */
+  if (outputParameters.device == paNoDevice) {
+    fprintf(stderr,"Error: No default output device.\n");
+    goto done;
+  }
+  outputParameters.channelCount = NUM_CHANNELS;
+  outputParameters.sampleFormat =  PA_SAMPLE_TYPE;
+  outputParameters.suggestedLatency = Pa_GetDeviceInfo(outputParameters.device)->defaultLowOutputLatency;
+  outputParameters.hostApiSpecificStreamInfo = NULL;
+
+  err = Pa_OpenStream(
+      &outputStream,
+      NULL, /* no input */
+      &outputParameters,
+      SAMPLE_RATE,
+      FRAMES_PER_BUFFER,
+      paClipOff,
+      writeCallback,
+      &data);
+  if (err != paNoError) goto done;
+
+  /* Set up input stream. */
+  inputParameters.device = Pa_GetDefaultInputDevice(); /* default input device */
+  if (inputParameters.device == paNoDevice) {
+    fprintf(stderr,"Error: No default input device.\n");
+    goto done;
+  }
+  inputParameters.channelCount = NUM_CHANNELS;
+  inputParameters.sampleFormat = PA_SAMPLE_TYPE;
+  inputParameters.suggestedLatency = Pa_GetDeviceInfo(inputParameters.device)->defaultLowInputLatency;
+  inputParameters.hostApiSpecificStreamInfo = NULL;
+
+  err = Pa_OpenStream(
+      &inputStream,
+      &inputParameters,
+      NULL,
+      SAMPLE_RATE,
+      FRAMES_PER_BUFFER,
+      paClipOff,
+      readCallback,
+      &data);
+  if (err != paNoError) goto done;
+
+  /* Create connection to remote client. */
   pthread_mutex_init(&conslock, NULL);
-  pthread_mutex_init(&buffer_lock, NULL);
 
   cons = calloc(1, sizeof(connection_t));
   if (p2p_connect(peer, port, &(cons[0]))) {
@@ -307,70 +265,57 @@ int start_audio(char *peer, char *port) {
   pthread_t thr;
   pthread_create(&thr, NULL, &dolisten, port);
 
-  /* Check that our buffer is big enough. */
-  assert(LATENCY < BUFFER_SIZE && PROCESS_TIME < BUFFER_SIZE);
+  /* Start the streams. */
+  err = Pa_StartStream(inputStream);
+  if (err != paNoError) goto done;
 
-  int ret = 1, r;
-  char *server = NULL;
+  err = Pa_StartStream(outputStream);
+  if (err != paNoError) goto done;
 
-  /* Set up a new main loop */
-  if (!(mainloop = pa_mainloop_new())) {
-    fprintf(stderr, ("pa_mainloop_new() failed.\n"));
-    goto quit;
+  while (1) {
+    /* Try to send out data that has been read in. */
+    ring_buffer_size_t elementsInBuffer = PaUtil_GetRingBufferReadAvailable(&data.inputRingBuffer);
+    while (elementsInBuffer * data.inputRingBuffer.elementSizeBytes > MIN_SIZE_TO_SEND) {
+      uint8_t buf[SIZE_TO_SEND];
+
+      ring_buffer_size_t elements_read =
+        PaUtil_ReadRingBuffer(&data.inputRingBuffer, buf,
+            SIZE_TO_SEND / data.inputRingBuffer.elementSizeBytes);
+
+      p2p_broadcast(&cons, &conslen, &conslock, buf,
+          elements_read * data.inputRingBuffer.elementSizeBytes); 
+
+      elementsInBuffer = PaUtil_GetRingBufferReadAvailable(&data.inputRingBuffer);
+    }
+    Pa_Sleep(20);
   }
 
-  mainloop_api = pa_mainloop_get_api(mainloop);
+  /* Stop the streams. */
+  err = Pa_CloseStream(inputStream);
+  if (err != paNoError) goto done;
 
-  r = pa_signal_init(mainloop_api);
-  assert(r == 0);
-
-  /* This will get tripped by the main thread's SIGINT handler. */
-  pa_signal_new(SIGUSR1, &exit_signal_callback, NULL);
-  pa_signal_new(SIGALRM, &audio_poll, NULL);
-#ifdef SIGPIPE
-  signal(SIGPIPE, SIG_IGN);
-#endif
-
-  /* Create a new connection context. */
-  if (!(context = pa_context_new(mainloop_api, client_name))) {
-    fprintf(stderr, ("pa_context_new() failed.\n"));
-    goto quit;
-  }
-
-  pa_context_set_state_callback(context, context_state_callback, NULL);
-
-  /* Connect the context */
-  if (pa_context_connect(context, server, 0, NULL) < 0) {
-    fprintf(stderr, ("pa_context_connect() failed: %s"), pa_strerror(pa_context_errno(context)));
-    goto quit;
-  }
-
-  /* Run the main loop */
-  if (pa_mainloop_run(mainloop, &ret) < 0) {
-    fprintf(stderr, ("pa_mainloop_run() failed.\n"));
-    goto quit;
-  }
-
-quit:
-  if (in_stream)
-    pa_stream_unref(in_stream);
-
-  if (context)
-    pa_context_unref(context);
-
-  if (mainloop) {
-    pa_signal_done();
-    pa_mainloop_free(mainloop);
-  }
-
+  err = Pa_CloseStream(outputStream);
+  if (err != paNoError) goto done;
   pthread_mutex_destroy(&conslock);
-  pthread_mutex_destroy(&buffer_lock);
-  return ret;
+done:
+  Pa_Terminate();
+  if (data.inputRingBufferData) PaUtil_FreeMemory(data.inputRingBufferData);
+  if (data.outputRingBufferData) PaUtil_FreeMemory(data.outputRingBufferData);
+  if (err != paNoError) {
+    fprintf(stderr, "An error occured while using the portaudio stream\n");
+    fprintf(stderr, "Error number: %d\n", err);
+    fprintf(stderr, "Error message: %s\n", Pa_GetErrorText(err));
+    err = 1;          /* Always return 0 or 1, but no other return codes. */
+  }
+  return err;
 }
 
 #ifdef AUDIOONLY
 int main(int argc, char *argv[]) {
-  return start_audio(argc, argv);
+  if (argc < 2) {
+    fprintf(stderr, "Must pass client to connect to.\n");
+  }
+  return start_audio(argv[1], "55555");
 }
 #endif
 
