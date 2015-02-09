@@ -5,13 +5,13 @@ A point to point color terminal video chat.
 [and here's a video](http://gfycat.com/HideousSpiffyAdder)
 
 # Compilation
-First, make the binary:
+Make the binary.
 
     make
 
-Second, run the binary:
+Video chat with yourself to test the camera.
 
-    ./p2pvc [ip addr] [-v]
+    ./p2pvc 127.0.0.1 -v
 
 ### Dependencies
 
