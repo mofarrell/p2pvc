@@ -14,7 +14,7 @@ CFLAGS_DEBUG+=-O0 -g3 -Werror -DDEBUG
 LDFLAGS+=-lpthread -lncurses -lpulse
 LDFLAGS+=`pkg-config --libs opencv`
 
-al: p2pvc
+all: p2pvc
 
 debug: CC+=$(CFLAGS_DEBUG)
 debug: p2pvc .FORCE
