@@ -185,6 +185,7 @@ int p2p_send_conns(connection_t *con, connection_t *cons, size_t conslen) {
 
   int rv = p2p_send(con, sendbuf, sendbufsize);
 
+  free(sendbuf);
   return (rv);
 }
 
