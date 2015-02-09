@@ -278,6 +278,7 @@ int p2p_listener(connection_t **cons, size_t *conslen,
     } else {
       clock_gettime(CLOCK_MONOTONIC, &currPacket);
       delta = currPacket.tv_nsec - prevPacket.tv_nsec;
+     clock_gettime(CLOCK_MONOTONIC, &prevPacket);
     }
 
     /* Handle error UDP style (try again). */
