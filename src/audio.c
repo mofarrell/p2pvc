@@ -114,46 +114,6 @@ static void stream_read_callback(pa_stream *s, size_t length, void *userdata) {
   if (pa_stream_drop(s) < 0) {
     fprintf(stderr, ("Could not drop fragment.\n"));
   }
-/*
-  size_t length1 = MIN(length, BUFFER_SIZE - read_ptr);
-  size_t length2 = length - length1;
-
-  if (write_ptr > read_ptr && write_ptr < read_ptr + length1) {
-    write_ptr = read_ptr + length1;
-  }
-  if (length2 != 0 && write_ptr < length2) {
-    write_ptr = length2;
-  }
-  assert(length1 + length2 == length);
-
-  if (verbose) {
-    fprintf(stderr, "length1: %lu, length2: %lu\n", length1, length2);
-  }
-
-  assert(read_ptr + length1 <= BUFFER_SIZE);
-  memcpy(&buffer[read_ptr], data, length1);
-  if (verbose) {
-    fprintf(stderr, "read: %lu\n", read_ptr);
-  }
-  read_ptr = (read_ptr + length1) % BUFFER_SIZE;
-  if (verbose) {
-    fprintf(stderr, "read: %lu\n", read_ptr);
-  }
-
-  if (length2 != 0) {
-    assert(length2 <= BUFFER_SIZE);
-    memcpy(buffer, (uint8_t *)data + length1, length2);
-    read_ptr = length2;
-  }
-
-  if (pa_stream_drop(s) < 0) {
-    fprintf(stderr, ("Could not drop fragment.\n"));
-  }
-
-  if (verbose) {
-    fprintf(stderr, "read: %lu\n", read_ptr);
-  }
-  */
 }
 
 /* This routine is called whenever the stream state changes */
@@ -314,7 +274,8 @@ static void new_callback(connection_t *con, void *data, size_t datalen) {
 
 static void *dolisten(void *args) {
   int socket;
-  p2p_init(55555, &socket);
+  int port = atoi((char *)args);
+  p2p_init(port, &socket);
   p2p_listener((connection_t **)&cons, &conslen, &conslock, &callback, &new_callback, socket);
   return NULL;
 }
@@ -331,19 +292,19 @@ static void audio_poll(pa_mainloop_api*m, pa_signal_event *e, int sig, void *use
 }
 
 /* Starts audio listenning and emission. */
-int start_audio(char *argv[]) {
+int start_audio(char *peer, char *port) {
   pthread_mutex_init(&conslock, NULL);
   pthread_mutex_init(&buffer_lock, NULL);
 
   cons = calloc(1, sizeof(connection_t));
-  if (p2p_connect(argv[1], "55555", &(cons[0]))) {
+  if (p2p_connect(peer, port, &(cons[0]))) {
     fprintf(stderr, "Unable to connect to server.\n");
   } else {
     conslen++;
   }
 
   pthread_t thr;
-  pthread_create(&thr, NULL, &dolisten, NULL);
+  pthread_create(&thr, NULL, &dolisten, port);
 
   /* Check that our buffer is big enough. */
   assert(LATENCY < BUFFER_SIZE && PROCESS_TIME < BUFFER_SIZE);

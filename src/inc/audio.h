@@ -1,2 +1,2 @@
-int start_audio(char *argv[]);
+int start_audio(char *peer, char *port);
 

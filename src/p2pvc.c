@@ -7,28 +7,76 @@
 #include <audio.h>
 #include <video.h>
 
-void *spawn_audio_thread(void *arg) {
-  start_audio((char **)arg);
+typedef struct {
+  char *ipaddr;
+  char *port;
+} network_options_t;
+
+void *spawn_audio_thread(void *args) {
+  network_options_t *netopts = args;
+  start_audio(netopts->ipaddr, netopts->port);
   return NULL;
+}
+
+void get_dimensions(char dim[], int *width, int *height) {
+  int i;
+  char *wstr = (char *)dim, *hstr;
+  for (i = 0; i < sizeof(dim); i++) {
+    if ((dim[i] == 'x' || dim[i] == ':') && (i + 1 < sizeof(dim))) {
+      dim[i] = '\0';
+      hstr = &(dim[i+1]);
+    }
+  }
+
+  *width = atoi(wstr);
+  *height = atoi(hstr);
 }
 
 int main(int argc, char **argv) {
   if (argc < 2) {
-    fprintf(stderr, "Usage: p2pvc [server]\n");
+    fprintf(stderr, "Usage: p2pvc [server] [options]\n");
     exit(1);
   }
 
+  char *peer = NULL;
+  char *audio_port = "55555";
+  char *video_port = "55556";
   int spawn_video = 0;
-  if (argc > 2 && !strncmp("-v", argv[2], 2)) {
-    spawn_video = 1;
+  int c;
+  int width, height;
+  while (optind < argc) {
+    if ((c = getopt (argc, argv, "vd:A:V:")) != -1) {
+      switch (c) {
+        case 'v':
+          spawn_video = 1;
+          break;
+        case 'A':
+          audio_port = optarg;
+          break;
+        case 'V':
+          video_port = optarg;
+          break;
+        case 'd':
+          get_dimensions(optarg, &width, &height);
+          break;
+        default:
+          break;
+      }
+    } else {
+      peer = argv[optind];
+      optind++;
+    }
   }
 
   if (spawn_video) {
     pthread_t thr;
-    pthread_create(&thr, NULL, spawn_audio_thread, (void *)argv);
-    start_video(argv);
+    network_options_t netopts;
+    netopts.ipaddr = peer;
+    netopts.port = audio_port;
+    pthread_create(&thr, NULL, spawn_audio_thread, (void *)&netopts);
+    start_video(peer, video_port, width, height);
   } else {
-    start_audio(argv);
+    start_audio(peer, audio_port);
   }
 
   return 0;

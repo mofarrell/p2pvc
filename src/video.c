@@ -29,25 +29,26 @@ static void new_callback(connection_t *con, void *data, size_t datalen) {
 
 static void *dolisten(void *args) {
   int socket;
-  p2p_init(55556, &socket);
+  int port = atoi((char *)args);
+  p2p_init(port, &socket);
   p2p_listener((connection_t **)&cons, &conslen, &conslock, &callback, &new_callback, socket);
   return NULL;
 }
 
-int start_video(char *argv[]) {
+int start_video(char *peer, char *port, int width, int height) {
   init_screen();
   pthread_mutex_init(&conslock, NULL);
   pthread_mutex_init(&buffer_lock, NULL);
 
   cons = calloc(1, sizeof(connection_t));
-  if (p2p_connect(argv[1], "55556", &(cons[0]))) {
+  if (p2p_connect(peer, port, &(cons[0]))) {
     fprintf(stderr, "Unable to connect to server.\n");
   } else {
     conslen++;
   }
 
   pthread_t thr;
-  pthread_create(&thr, NULL, &dolisten, NULL);
+  pthread_create(&thr, NULL, &dolisten, (void *)port);
 
   IplImage* color_img;
   IplImage* resize_img = cvCreateImage(cvSize(VIDEO_WIDTH,VIDEO_HEIGHT),8,3);  
