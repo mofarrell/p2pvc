@@ -4,7 +4,11 @@ A point to point color terminal video chat.
 (http://i.imgur.com/ziRPCWE.png)
 [and here's a video](http://gfycat.com/HideousSpiffyAdder)
 
-# Compilation
+# Installation
+
+Arch users can install `p2pvc-git` from [the AUR](https://aur.archlinux.org/packages/p2pvc-git/)
+
+### Build from source
 Make the binary.
 
     make
