@@ -94,7 +94,7 @@ int start_video(char *peer, char *port, vid_options_t *vopt) {
         memset(line_buffer, 0, sizeof(line_buffer));
         unsigned long send_index = htonl(line_index);
         memcpy(line_buffer, &send_index, sizeof(unsigned long));
-        memcpy(&(line_buffer[4]), resize_img->imageData + (line_index * width * depth), width * depth);
+        memcpy(&(line_buffer[sizeof(unsigned long)]), resize_img->imageData + (line_index * width * depth), width * depth);
         p2p_broadcast(&cons, &conslen, &conslock, line_buffer, + sizeof(line_buffer));
       }
     }
