@@ -52,7 +52,7 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
-  char *peer = NULL;
+  char *peer = argv[1];
   char *audio_port = "55555";
   char *video_port = "55556";
   int spawn_video = 0;
@@ -76,9 +76,6 @@ int main(int argc, char **argv) {
         default:
           break;
       }
-    } else {
-      peer = argv[optind];
-      optind++;
     }
   }
 
