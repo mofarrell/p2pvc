@@ -53,8 +53,8 @@ int draw_image(char *data, int width, int height, int step, int channels) {
   unsigned char b, g, r;
   int offset = 0;
   int intensity;
-  for (y=0; y < height && y < LINES; y++){
-    for (x=0; x < width && x < COLS; x++){
+  for (y = 0; y < height && y < LINES; y++){
+    for (x = 0; x < width && x < COLS; x++){
       b = data[step * y + x * channels] + offset;
       g = data[step * y + x * channels + 1] + offset;
       r = data[step * y + x * channels + 2] + offset;
@@ -68,6 +68,22 @@ int draw_image(char *data, int width, int height, int step, int channels) {
       mvaddch(y, x, ascii_image[y * width + x]|COLOR_PAIR(color));
     }
   } 
+
+  refresh();
+  return 0;
+}
+
+int write_bandwidth(char *bandstr, int bandlen, int width, int height) {
+  int i;
+
+  if (width < bandlen) {
+    /* can't write it to the screen */
+    return -1;
+  }
+
+  for (i = width - bandlen; i < width; i++) {
+    mvaddch(0, i, bandstr[i - width + bandlen]);
+  }
 
   refresh();
   return 0;

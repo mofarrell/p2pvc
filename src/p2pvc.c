@@ -55,11 +55,17 @@ int main(int argc, char **argv) {
   char *peer = argv[1];
   char *audio_port = "55555";
   char *video_port = "55556";
+  vid_options_t vopt;
   int spawn_video = 0;
   int c;
   int width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT;
+
+  memset(&vopt, 0, sizeof(vid_options_t));
+  vopt.width = DEFAULT_WIDTH;
+  vopt.height = DEFAULT_HEIGHT;
+
   while (optind < argc) {
-    if ((c = getopt (argc, argv, "vd:A:V:")) != -1) {
+    if ((c = getopt (argc, argv, "bvd:A:V:")) != -1) {
       switch (c) {
         case 'v':
           spawn_video = 1;
@@ -72,13 +78,17 @@ int main(int argc, char **argv) {
           break;
         case 'd':
           get_dimensions(optarg, &width, &height);
+          vopt.width = width;
+          vopt.height = height;
+          break;
+        case 'b':
+          vopt.disp_bandwidth = 1;
           break;
         default:
           break;
       }
     }
   }
-
 
   if (spawn_video) {
     signal(SIGINT, all_shutdown);
@@ -87,7 +97,7 @@ int main(int argc, char **argv) {
     netopts.ipaddr = peer;
     netopts.port = audio_port;
     pthread_create(&thr, NULL, spawn_audio_thread, (void *)&netopts);
-    start_video(peer, video_port, width, height);
+    start_video(peer, video_port, &vopt);
   } else {
     signal(SIGINT, audio_shutdown);
     start_audio(peer, audio_port);
