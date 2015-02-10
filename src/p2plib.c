@@ -270,7 +270,8 @@ int p2p_listener(connection_t **cons, size_t *conslen,
     memset(buf, 0, max_packet_size);
     int recv_len = recvfrom(socket, buf, max_packet_size, UDP_FLAGS, (struct sockaddr *)&(con.addr), &(con.addr_len));
 
-
+#ifdef __APPLE__
+/* Temporarily disable bandwidth.  Broken for OSX. */
     if (delta == -1) {
       clock_gettime(CLOCK_MONOTONIC, &prevPacket);
       delta = 0;
@@ -279,6 +280,7 @@ int p2p_listener(connection_t **cons, size_t *conslen,
       delta = currPacket.tv_nsec - prevPacket.tv_nsec;
       clock_gettime(CLOCK_MONOTONIC, &prevPacket);
     }
+#endif
 
     /* Handle error UDP style (try again). */
     if (recv_len < 0) {
