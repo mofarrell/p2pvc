@@ -28,7 +28,7 @@ static void callback(connection_t *con, void *data, size_t length) {
   if (disp_bandwidth) {
     char *bandstr = alloca(64);
     memset(bandstr, 0, 64);
-    sprintf(bandstr, "Bandwidth : %f MB/s", 1000 * p2p_bandwidth(length));
+    sprintf(bandstr, " Bandwidth : %f MB/s", 1000 * p2p_bandwidth(length));
     write_bandwidth(bandstr, strlen(bandstr), width, height);
   }
   pthread_mutex_unlock(&buffer_lock);
