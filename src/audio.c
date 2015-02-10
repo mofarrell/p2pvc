@@ -208,11 +208,6 @@ int start_audio(char *peer, char *port) {
   err = Pa_Initialize();
   if (err != paNoError) goto done;
 
-  //PaHostApiIndex api_count = Pa_GetHostApiCount();
-  //PaHostApiIndex api_index = Pa_GetDefaultHostApi();
-  //const PaHostApiInfo *api_info = Pa_GetHostApiInfo(api_index);
-  //printf("Got api %s\n", api_info->name);
-
   /* Set up output stream. */
   outputParameters.device = Pa_GetDefaultOutputDevice(); /* default output device */
   if (outputParameters.device == paNoDevice) {
