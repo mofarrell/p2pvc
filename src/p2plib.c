@@ -270,7 +270,7 @@ int p2p_listener(connection_t **cons, size_t *conslen,
     memset(buf, 0, max_packet_size);
     int recv_len = recvfrom(socket, buf, max_packet_size, UDP_FLAGS, (struct sockaddr *)&(con.addr), &(con.addr_len));
 
-#ifdef __LINUX__
+#ifdef __linux__
 /* Temporarily disable bandwidth.  Broken for OSX. */
     if (delta == -1) {
       clock_gettime(CLOCK_MONOTONIC, &prevPacket);
