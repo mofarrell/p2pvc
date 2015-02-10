@@ -64,29 +64,27 @@ int main(int argc, char **argv) {
   vopt.width = DEFAULT_WIDTH;
   vopt.height = DEFAULT_HEIGHT;
 
-  while (optind < argc) {
-    if ((c = getopt (argc, argv, "bvd:A:V:")) != -1) {
-      switch (c) {
-        case 'v':
-          spawn_video = 1;
-          break;
-        case 'A':
-          audio_port = optarg;
-          break;
-        case 'V':
-          video_port = optarg;
-          break;
-        case 'd':
-          get_dimensions(optarg, &width, &height);
-          vopt.width = width;
-          vopt.height = height;
-          break;
-        case 'b':
-          vopt.disp_bandwidth = 1;
-          break;
-        default:
-          break;
-      }
+  while ((c = getopt (argc, argv, "bvd:A:V:")) != -1) {
+    switch (c) {
+      case 'v':
+        spawn_video = 1;
+        break;
+      case 'A':
+        audio_port = optarg;
+        break;
+      case 'V':
+        video_port = optarg;
+        break;
+      case 'd':
+        get_dimensions(optarg, &width, &height);
+        vopt.width = width;
+        vopt.height = height;
+        break;
+      case 'b':
+        vopt.disp_bandwidth = 1;
+        break;
+      default:
+        break;
     }
   }
 
