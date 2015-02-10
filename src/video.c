@@ -30,7 +30,7 @@ static void callback(connection_t *con, void *data, size_t length) {
   if (disp_bandwidth) {
     char bandstr[BANDWIDTH_BUFLEN];
     memset(bandstr, 0, BANDWIDTH_BUFLEN);
-    sprintf(bandstr, " Bandwidth : %f MB/s", 1000 * p2p_bandwidth(length));
+    sprintf(bandstr, " Bandwidth : %f MB/s", 1000 * p2p_bandwidth());
     write_bandwidth(bandstr, strlen(bandstr), width, height);
   }
   pthread_mutex_unlock(&buffer_lock);

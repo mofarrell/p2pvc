@@ -16,20 +16,23 @@
 #include <time.h>
 
 #define UDP_FLAGS         0
+#define BANDWIDTH_BUFLEN  100
 
 static struct timespec prevPacket, currPacket;
 static long delta = -1;
-
+static unsigned int bandwidth_index;
+static double bandwidth_buf[BANDWIDTH_BUFLEN];
 
 /* @brief gives the bandwidth for a given packet size 
  * @return a double that represents the bandwidth in bytes/nanoseconds
  */
-double p2p_bandwidth(size_t packetsize) {
-  if (delta == -1) {
-    return 0;
-  } else {
-    return (((double)packetsize/ (double) delta));
+double p2p_bandwidth() {
+  double tot = 0;
+  unsigned int i = 0;
+  for (i = 0; i < BANDWIDTH_BUFLEN; i++) {
+    tot += bandwidth_buf[i];
   }
+  return tot/BANDWIDTH_BUFLEN;
 }
 
 
@@ -279,6 +282,8 @@ int p2p_listener(connection_t **cons, size_t *conslen,
       clock_gettime(CLOCK_MONOTONIC, &currPacket);
       delta = currPacket.tv_nsec - prevPacket.tv_nsec;
       clock_gettime(CLOCK_MONOTONIC, &prevPacket);
+      bandwidth_index = (bandwidth_index + 1) % BANDWIDTH_BUFLEN;
+      bandwidth_buf[bandwidth_index] = (double)recv_len/delta;
     }
 #endif
 
