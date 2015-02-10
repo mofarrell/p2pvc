@@ -16,7 +16,7 @@
 #include <time.h>
 
 #define UDP_FLAGS         0
-#define BANDWIDTH_BUFLEN  100
+#define BANDWIDTH_BUFLEN  1024
 
 static struct timespec prevPacket, currPacket;
 static long delta = -1;
