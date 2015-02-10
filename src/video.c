@@ -84,6 +84,9 @@ int start_video(char *peer, char *port, vid_options_t *vopt) {
 
   cv_cap = cvCaptureFromCAM(0);
   char line_buffer[sizeof(unsigned long) + width * depth];
+  struct timespec tim, actual_tim;
+  tim.tv_sec = 0;
+  tim.tv_nsec = 50000000;
   while (1) {
     /* Get each frame */
     color_img = cvQueryFrame(cv_cap);
@@ -97,6 +100,7 @@ int start_video(char *peer, char *port, vid_options_t *vopt) {
         memcpy(&(line_buffer[sizeof(unsigned long)]), resize_img->imageData + (line_index * width * depth), width * depth);
         p2p_broadcast(&cons, &conslen, &conslock, line_buffer, + sizeof(line_buffer));
       }
+      nanosleep(&tim, &actual_tim);
     }
   }
 
