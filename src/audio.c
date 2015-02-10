@@ -72,9 +72,9 @@ static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
 
   pthread_mutex_lock(&buffer_lock);
   if (verbose) {
-    fprintf(stderr, "write length: %lu\n", length);
+    fprintf(stderr, "write length: %zu\n", length);
 
-    fprintf(stderr, "read: %lu, write: %lu, length: %lu\n", read_ptr, write_ptr, length); 
+    fprintf(stderr, "read: %zu, write: %zu, length: %zu\n", read_ptr, write_ptr, length); 
   }
   if (read_ptr < write_ptr && write_ptr + length >= BUFFER_SIZE) {
     length = BUFFER_SIZE - write_ptr;
@@ -82,7 +82,7 @@ static void stream_write_callback(pa_stream *s, size_t length, void *userdata) {
     length = read_ptr - write_ptr;
   }
   if (verbose) {
-    fprintf(stderr, "read: %lu, write: %lu, length: %lu\n", read_ptr, write_ptr, length); 
+    fprintf(stderr, "read: %zu, write: %zu, length: %zu\n", read_ptr, write_ptr, length); 
   }
 
   assert(write_ptr + length <= BUFFER_SIZE);
@@ -106,7 +106,7 @@ static void stream_read_callback(pa_stream *s, size_t length, void *userdata) {
   assert(length > 0);
 
   if (verbose) {
-    fprintf(stderr, "reading: %lu\n", length);
+    fprintf(stderr, "reading: %zu\n", length);
   }
   
   p2p_broadcast(&cons, &conslen, &conslock, data, length); 
@@ -238,17 +238,17 @@ static void callback(connection_t *con, void *data, size_t length) {
   assert(length1 + length2 == length);
 
   if (verbose) {
-    fprintf(stderr, "length1: %lu, length2: %lu\n", length1, length2);
+    fprintf(stderr, "length1: %zu, length2: %zu\n", length1, length2);
   }
 
   assert(read_ptr + length1 <= BUFFER_SIZE);
   memcpy(&buffer[read_ptr], data, length1);
   if (verbose) {
-    fprintf(stderr, "read: %lu\n", read_ptr);
+    fprintf(stderr, "read: %zu\n", read_ptr);
   }
   read_ptr = (read_ptr + length1) % BUFFER_SIZE;
   if (verbose) {
-    fprintf(stderr, "read: %lu\n", read_ptr);
+    fprintf(stderr, "read: %zu\n", read_ptr);
   }
 
   if (length2 != 0) {
@@ -258,7 +258,7 @@ static void callback(connection_t *con, void *data, size_t length) {
   }
 
   if (verbose) {
-    fprintf(stderr, "read: %lu\n", read_ptr);
+    fprintf(stderr, "read: %zu\n", read_ptr);
   }
   pthread_mutex_unlock(&buffer_lock);
 
