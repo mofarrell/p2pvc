@@ -27,7 +27,7 @@ Video chat with yourself to test the camera. (Be sure to mute your mic or speake
 
 If you are running Ubuntu: `sudo apt-get install libncurses-dev libopencv-dev libpulse-dev`
 
-### Usage
+# Usage
 
 #### Audio only
 
@@ -51,7 +51,7 @@ If you are running Ubuntu: `sudo apt-get install libncurses-dev libopencv-dev li
  
      ./p2pvc [ip address] -v -b
 
-### Known problems and resolutions
+# Known problems and resolutions
 
 #### Black and white
 
