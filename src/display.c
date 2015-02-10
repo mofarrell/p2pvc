@@ -47,26 +47,21 @@ static inline int get_color(int r, int g, int b) {
 
 const char ascii_values[] = " ..::--==+++***###%%%%%%%%@@@@@@@";
 
-int draw_image(char *data, int width, int height, int step, int channels) {
-  char ascii_image[width*height];
-  int y, x;
+int draw_line(char *data, int width, int y, int channels) {
+  int j;
   unsigned char b, g, r;
-  int offset = 0;
   int intensity;
-  for (y = 0; y < height && y < LINES; y++){
-    for (x = 0; x < width && x < COLS; x++){
-      b = data[step * y + x * channels] + offset;
-      g = data[step * y + x * channels + 1] + offset;
-      r = data[step * y + x * channels + 2] + offset;
-      //intensity = abs((int)(0.2126*r + 0.7152*g + 0.0722*b));
-      intensity = (sizeof(ascii_values) - 1) * ((r/255.0 + g/255.0 + b/255.0) / 3);
-      ascii_image[y * width + x] = ascii_values[intensity];
-      int color = get_color(r, g, b);
-      if (COLORS < 255) {
-        color = 0;
-      }
-      mvaddch(y, x, ascii_image[y * width + x]|COLOR_PAIR(color));
+  for (j = 0; j < width; j++){
+    b = data[j * channels];
+    g = data[j * channels + 1];
+    r = data[j * channels + 2];
+    intensity = (sizeof(ascii_values) - 1) * ((r/255.0 + g/255.0 + b/255.0) / 3);
+    char val = ascii_values[intensity];
+    int color = get_color(r, g, b);
+    if (COLORS < 255) {
+      color = 0;
     }
+    mvaddch(y, j, val|COLOR_PAIR(color));
   } 
 
   refresh();
