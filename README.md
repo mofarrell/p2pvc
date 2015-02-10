@@ -27,6 +27,8 @@ Video chat with yourself to test the camera. (Be sure to mute your mic or speake
 
 If you are running Ubuntu: `sudo apt-get install libncurses-dev libopencv-dev libpulse-dev`
 
+If you are running OSX, try the `portaudio` branch, and install the additional dependency PortAudio.
+
 # Usage
 
 #### Audio only
