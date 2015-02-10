@@ -47,6 +47,10 @@ If you are running Ubuntu: `sudo apt-get install libncurses-dev libopencv-dev li
 
      ./p2pvc [ip address] -v -A 1337 -V 1338
 
+`-b` flag displays incoming bandwidth in the top-right of the video display
+ 
+     ./p2pvc [ip address] -v -b
+
 ### Known problems and resolutions
 
 #### Black and white
