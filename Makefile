@@ -16,7 +16,7 @@ CFLAGS+=-DPA_USE_COREAUDIO
 endif
 CFLAGS+=`pkg-config --cflags opencv`
 CFLAGS_DEBUG+=-O0 -g3 -Werror -DDEBUG
-LDFLAGS+=-lpthread -lncurses -lportaudio
+LDFLAGS+=-lpthread -lncurses -lportaudio -lm
 LDFLAGS+=`pkg-config --libs opencv`
 
 all: p2pvc

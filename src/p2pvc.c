@@ -88,8 +88,9 @@ int main(int argc, char **argv) {
   memset(&vopt, 0, sizeof(vid_options_t));
   vopt.width = DEFAULT_WIDTH;
   vopt.height = DEFAULT_HEIGHT;
+  vopt.render_type = 0;
 
-  while ((c = getopt (argc - 1, &(argv[1]), "bvd:A:V:he")) != -1) {
+  while ((c = getopt (argc - 1, &(argv[1]), "bvd:A:V:heB")) != -1) {
     switch (c) {
       case 'v':
         spawn_video = 1;
@@ -114,6 +115,9 @@ int main(int argc, char **argv) {
         break;
       case 'e':
         print_error = 1;
+        break;
+      case 'B':
+        vopt.render_type = 1;
         break;
       default:
         break;

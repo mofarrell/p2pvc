@@ -21,13 +21,19 @@ static int disp_bandwidth = 0;
 static int width;
 static int height;
 static int depth = COLOR_DEPTH;
+static int render_type; /* 0 default, 1 braille */
 
 static void callback(connection_t *con, void *data, size_t length) {
   pthread_mutex_lock(&buffer_lock);
   unsigned long index = ntohl(((unsigned long*)data)[0]);
   int y = index;
-  //draw_line(&(((char*)data)[(sizeof(unsigned long))]), length - (sizeof(unsigned long)), y, depth, index == 0);
-  draw_braille(&(((char*)data)[(sizeof(unsigned long))]), length - (sizeof(unsigned long)), y, depth);
+
+  if (render_type == 1) {
+    draw_braille(&(((char*)data)[(sizeof(unsigned long))]), length - (sizeof(unsigned long)), y, depth);
+  } else {
+    draw_line(&(((char*)data)[(sizeof(unsigned long))]), length - (sizeof(unsigned long)), y, depth);
+  }
+
   if (disp_bandwidth) {
     char bandstr[BANDWIDTH_BUFLEN];
     memset(bandstr, 0, BANDWIDTH_BUFLEN);
@@ -59,17 +65,15 @@ static void *dolisten(void *args) {
 }
 
 int start_video(char *peer, char *port, vid_options_t *vopt) {
-
-  int w = vopt->width;
-  int h = vopt->height;
+  width = GET_WIDTH(vopt->width);
+  height = GET_HEIGHT(vopt->height);
+  render_type = vopt->render_type;
   disp_bandwidth = vopt->disp_bandwidth;
+
   init_screen();
   curs_set(0);
   pthread_mutex_init(&conslock, NULL);
   pthread_mutex_init(&buffer_lock, NULL);
-
-  width = GET_WIDTH(w);
-  height = GET_HEIGHT(h);
 
   cons = calloc(1, sizeof(connection_t));
   if (p2p_connect(peer, port, &(cons[0]))) {

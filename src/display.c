@@ -107,8 +107,6 @@ int draw_braille(char *data, int width, int y, int channels) {
       sprintf(braille, "%C", add_pixel(mvinch(row, j / 2), 3 - (y % 4), 1 - (j % 2), 0));
     }
     mvaddstr(row, j / 2, braille);
-    /* Get the character on the row and update it. */
-    //fprintf(stderr, "%C%x\n", to_braille(0x99), from_braille(to_braille(0x99)));//mvinch(row, j));
   }
   if (y == 0) {
     refresh();
@@ -116,7 +114,7 @@ int draw_braille(char *data, int width, int y, int channels) {
   return 0;
 }
 
-int draw_line(char *data, int width, int y, int channels, int do_refresh) {
+int draw_line(char *data, int width, int y, int channels) {
   int j;
   unsigned char b, g, r;
   int intensity;
@@ -133,7 +131,7 @@ int draw_line(char *data, int width, int y, int channels, int do_refresh) {
     mvaddch(y, j, val|COLOR_PAIR(color));
   }
 
-  if (do_refresh) {
+  if (y == 0) {
     refresh();
   }
   return 0;
