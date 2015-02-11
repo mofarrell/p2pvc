@@ -71,7 +71,11 @@ Video chat with yourself to test the camera. (Be sure to mute your mic or speake
 
 `-I` sets the threshold for turning pixels on (when using the `-B` flag).  Ranges from 1 - 99, defaults 25.
 
-     ./p2pvc [ip address] -v -B -I 50
+    ./p2pvc [ip address] -v -B -I 50
+
+`-E` sets and edge filter with `[lower]:[upper]` bounds.
+
+    ./p2pvc [ip address] -v -B -E 100:300
 
 `-c` sets the color of the video.  Used in the form `[r]:[g]:[b]`.  Each color ranges from 0 - 100.
 
