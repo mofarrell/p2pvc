@@ -103,7 +103,7 @@ int start_video(char *peer, char *port, vid_options_t *vopt) {
   while (1) {
     /* Get each frame */
     color_img = cvQueryFrame(cv_cap);
-    if(color_img != 0) {
+    if(color_img && resize_img) {
       cvResize(color_img, resize_img, CV_INTER_AREA);
       unsigned long line_index;
       for (line_index = 0; line_index < (resize_img->imageSize / (width * depth)); line_index++) {
@@ -118,7 +118,7 @@ int start_video(char *peer, char *port, vid_options_t *vopt) {
   }
 
   /* Housekeeping */
-  cvReleaseCapture( &cv_cap );
+  cvReleaseCapture(&cv_cap);
   end_screen();
   return 0;
 }
