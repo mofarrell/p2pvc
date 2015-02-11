@@ -64,6 +64,7 @@ int start_video(char *peer, char *port, vid_options_t *vopt) {
   int h = vopt->height;
   disp_bandwidth = vopt->disp_bandwidth;
   init_screen();
+  curs_set(0);
   pthread_mutex_init(&conslock, NULL);
   pthread_mutex_init(&buffer_lock, NULL);
 

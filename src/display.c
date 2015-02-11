@@ -41,8 +41,9 @@ void end_screen(void) {
 }
 
 /* allow us to directly map to the 216 colors ncurses makes available */
-static inline int get_color(int r, int g, int b) {
-  return 16+r/48*36+g/48*6+b/48;
+static inline unsigned int get_color(int r, int g, int b) {
+  unsigned int f = (16+r/48*36+g/48*6+b/48);
+  return f;
 }
 
 const char ascii_values[] = " ..::--==+++***###%%%%%%%%@@@@@@@";
@@ -94,7 +95,6 @@ int draw_braille(char *data, int width, int y, int channels) {
     r = data[j * channels + 2];
     intensity = 100 * ((r/255.0 + g/255.0 + b/255.0) / 3);
     int color = get_color(r, g, b);
-    int bg_color = get_color(r / 2, g / 2, b / 2);
 
     char braille[2];
     attron(COLOR_PAIR(color));
