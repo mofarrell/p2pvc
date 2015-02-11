@@ -26,7 +26,7 @@ static void callback(connection_t *con, void *data, size_t length) {
   pthread_mutex_lock(&buffer_lock);
   unsigned long index = ntohl(((unsigned long*)data)[0]);
   int y = index;
-  draw_line(&(((char*)data)[(sizeof(unsigned long))]), length - (sizeof(unsigned long)), y, depth);
+  draw_line(&(((char*)data)[(sizeof(unsigned long))]), length - (sizeof(unsigned long)), y, depth, index == 0);
   if (disp_bandwidth) {
     char bandstr[BANDWIDTH_BUFLEN];
     memset(bandstr, 0, BANDWIDTH_BUFLEN);

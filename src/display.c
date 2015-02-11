@@ -47,7 +47,7 @@ static inline int get_color(int r, int g, int b) {
 
 const char ascii_values[] = " ..::--==+++***###%%%%%%%%@@@@@@@";
 
-int draw_line(char *data, int width, int y, int channels) {
+int draw_line(char *data, int width, int y, int channels, int do_refresh) {
   int j;
   unsigned char b, g, r;
   int intensity;
@@ -62,9 +62,11 @@ int draw_line(char *data, int width, int y, int channels) {
       color = 0;
     }
     mvaddch(y, j, val|COLOR_PAIR(color));
-  } 
+  }
 
-  refresh();
+  if (do_refresh) {
+    refresh();
+  }
   return 0;
 }
 
