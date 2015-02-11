@@ -10,14 +10,7 @@ A point to point color terminal video chat.
 
 Arch users can install `p2pvc-git` from [the AUR](https://aur.archlinux.org/packages/p2pvc-git/)
 
-### Build from source
-Make the binary.
-
-    make
-
-Video chat with yourself to test the camera. (Be sure to mute your mic or speakers or you'll get feedback!)
-
-    ./p2pvc 127.0.0.1 -v
+## Build from source
 
 ### Dependencies
 
@@ -25,7 +18,22 @@ Video chat with yourself to test the camera. (Be sure to mute your mic or speake
 * PortAudio
 * ncurses
 
-If you are running Ubuntu: `sudo apt-get install libncurses-dev libopencv-dev libportaudio-dev`
+#### Ubuntu:
+
+     sudo apt-get install libncurses-dev libopencv-dev libportaudio-dev`
+
+#### OS X (with MacPorts):
+
+     sudo port install ncurses portaudio opencv
+
+### Compilation
+Make the binary.
+
+    make
+
+Video chat with yourself to test the camera. (Be sure to mute your mic or speakers or you'll get feedback!)
+
+    ./p2pvc 127.0.0.1 -v
 
 # Usage
 
