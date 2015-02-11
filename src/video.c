@@ -94,17 +94,24 @@ int start_video(char *peer, char *port, vid_options_t *vopt) {
 
   IplImage* color_img;
   IplImage* resize_img = cvCreateImage(cvSize(width, height), 8, 3);  
+  IplImage* edge = cvCreateImage(cvGetSize(resize_img), IPL_DEPTH_8U, 1);
 
   cv_cap = cvCaptureFromCAM(0);
   char line_buffer[sizeof(unsigned long) + width * depth];
   struct timespec tim, actual_tim;
   tim.tv_sec = 0;
   tim.tv_nsec = (1000000000 - 1) / vopt->refresh_rate;
+  int kernel = 7;
   while (1) {
     /* Get each frame */
     color_img = cvQueryFrame(cv_cap);
     if(color_img && resize_img) {
       cvResize(color_img, resize_img, CV_INTER_AREA);
+      if (vopt->edge_filter) {
+        cvCvtColor(resize_img, edge, CV_BGR2GRAY);
+        cvCanny(edge, edge, vopt->edge_lower * kernel * kernel, vopt->edge_upper * kernel * kernel, kernel);
+        cvCvtColor(edge, resize_img, CV_GRAY2BGR);
+      }
       unsigned long line_index;
       for (line_index = 0; line_index < (resize_img->imageSize / (width * depth)); line_index++) {
         memset(line_buffer, 0, sizeof(line_buffer));

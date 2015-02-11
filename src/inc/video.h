@@ -13,6 +13,7 @@ typedef struct {
   int monochrome;
   char r; char g; char b;
   char *ascii_values;
+  int edge_filter; int edge_lower; int edge_upper;
 } vid_options_t;
 
 void video_shutdown(int signal);

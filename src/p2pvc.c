@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
   vopt.render_type = 0;
   vopt.refresh_rate = 20;
 
-  while ((c = getopt (argc - 1, &(argv[1]), "bvd:A:V:heBI:s:c:a:r:")) != -1) {
+  while ((c = getopt (argc - 1, &(argv[1]), "bvd:A:V:heBI:E:s:c:a:r:")) != -1) {
     switch (c) {
       case 'v':
         spawn_video = 1;
@@ -120,6 +120,10 @@ int main(int argc, char **argv) {
         break;
       case 'I':
         sscanf(optarg, "%d", &vopt.intensity_threshold);
+        break;
+      case 'E':
+        vopt.edge_filter = 1;
+        sscanf(optarg, "%d:%d", &vopt.edge_lower, &vopt.edge_upper);
         break;
       case 's':
         sscanf(optarg, "%lf", &vopt.saturation);
