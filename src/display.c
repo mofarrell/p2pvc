@@ -31,7 +31,7 @@ void init_screen(display_options_t *dopt){
   if (dopt->ascii_values) {
     ascii_values = dopt->ascii_values;
   }
-  if (dopt->saturation > 1.0) {
+  if (dopt->saturation >= 0.0) {
     saturation = dopt->saturation;
   }
   if (dopt->intensity_threshold) {

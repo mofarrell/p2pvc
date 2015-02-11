@@ -97,6 +97,7 @@ int main(int argc, char **argv) {
   vopt.height = DEFAULT_HEIGHT;
   vopt.render_type = 0;
   vopt.refresh_rate = 20;
+  vopt.saturation = -1.0;
 
   while ((c = getopt (argc - 1, &(argv[1]), "bvd:A:V:heBI:E:s:c:a:r:")) != -1) {
     switch (c) {
