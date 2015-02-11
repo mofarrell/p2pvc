@@ -89,8 +89,9 @@ int main(int argc, char **argv) {
   vopt.width = DEFAULT_WIDTH;
   vopt.height = DEFAULT_HEIGHT;
   vopt.render_type = 0;
+  vopt.refresh_rate = 20;
 
-  while ((c = getopt (argc - 1, &(argv[1]), "bvd:A:V:heB")) != -1) {
+  while ((c = getopt (argc - 1, &(argv[1]), "bvd:A:V:heBr:")) != -1) {
     switch (c) {
       case 'v':
         spawn_video = 1;
@@ -109,15 +110,18 @@ int main(int argc, char **argv) {
       case 'b':
         vopt.disp_bandwidth = 1;
         break;
+      case 'r':
+        vopt.refresh_rate = atol(optarg);
+        break;
+      case 'B':
+        vopt.render_type = 1;
+        break;
       case 'h':
         usage(stdout);
         exit(0);
         break;
       case 'e':
         print_error = 1;
-        break;
-      case 'B':
-        vopt.render_type = 1;
         break;
       default:
         break;

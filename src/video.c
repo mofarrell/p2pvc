@@ -92,7 +92,7 @@ int start_video(char *peer, char *port, vid_options_t *vopt) {
   char line_buffer[sizeof(unsigned long) + width * depth];
   struct timespec tim, actual_tim;
   tim.tv_sec = 0;
-  tim.tv_nsec = 50000000;
+  tim.tv_nsec = (1000000000 - 1) / vopt->refresh_rate;
   while (1) {
     /* Get each frame */
     color_img = cvQueryFrame(cv_cap);

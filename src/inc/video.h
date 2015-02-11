@@ -7,6 +7,7 @@ typedef struct {
   int depth;
   int disp_bandwidth;
   int render_type;
+  unsigned long refresh_rate;
 } vid_options_t;
 
 void video_shutdown(int signal);
