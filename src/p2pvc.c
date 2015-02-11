@@ -46,9 +46,24 @@ void get_dimensions(char dim[], int *width, int *height) {
   *height = atoi(hstr);
 }
 
+void usage(FILE *stream) {
+  fprintf(stream,
+    "Usage: p2pvc [-h] [server] [options]\n"
+    "A point to point color terminal video chat.\n"
+    "\n"
+    "  -v    Enable video chat.\n"
+    "  -d    Dimensions of video in either [width]x[height] or [width]:[height]\n"
+    "  -A    Audio port.\n"
+    "  -V    Video port.\n"
+    "  -b    Display incoming bandwidth in the top-right of the video display.\n"
+    "\n"
+    "Report bugs to https://github.com/mofarrell/p2pvc/issues.\n"
+  );
+}
+
 int main(int argc, char **argv) {
   if (argc < 2) {
-    fprintf(stderr, "Usage: p2pvc [server] [options]\n");
+    usage(stderr);
     exit(1);
   }
 
@@ -64,7 +79,7 @@ int main(int argc, char **argv) {
   vopt.width = DEFAULT_WIDTH;
   vopt.height = DEFAULT_HEIGHT;
 
-  while ((c = getopt (argc, argv, "bvd:A:V:")) != -1) {
+  while ((c = getopt (argc, argv, "bvd:A:V:h")) != -1) {
     switch (c) {
       case 'v':
         spawn_video = 1;
@@ -82,6 +97,10 @@ int main(int argc, char **argv) {
         break;
       case 'b':
         vopt.disp_bandwidth = 1;
+        break;
+      case 'h':
+        usage(stdout);
+        exit(0);
         break;
       default:
         break;
