@@ -58,6 +58,7 @@ void usage(FILE *stream) {
     "  -A    Audio port.\n"
     "  -V    Video port.\n"
     "  -b    Display incoming bandwidth in the top-right of the video display.\n"
+    "  -e    Print stderr (which is by default routed to /dev/null).\n"
     "\n"
     "Report bugs to https://github.com/mofarrell/p2pvc/issues.\n"
   );
