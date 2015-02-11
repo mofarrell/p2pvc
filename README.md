@@ -60,7 +60,13 @@ Video chat with yourself to test the camera. (Be sure to mute your mic or speake
 `-e` to print stderr (which is by default routed to /dev/null).
 
      ./p2pvc [ip address] -e
+     
+`-B` renders in Braille Unicode characters.  Note that the dimensions must both be divisible by 4. 
 
+     ./p2pvc [ip address] -v -B -d 200x152
+     
+![Demo.]
+(http://fat.gfycat.com/WideRecklessChinesecrocodilelizard.gif)
 # Known problems and resolutions
 
 #### Black and white
