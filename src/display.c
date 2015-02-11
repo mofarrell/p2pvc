@@ -47,8 +47,53 @@ static inline int get_color(int r, int g, int b) {
 
 const char ascii_values[] = " ..::--==+++***###%%%%%%%%@@@@@@@";
 
-int draw_braille(char *data, int width, int height, int channels) {
-  // Let the magic begin.
+chtype to_braille(unsigned char byte) {
+  return 10240 + (
+  ((byte >> 7) & /* 0b00000001 */ (1 << 0)) |
+  ((byte >> 3) & /* 0b00001000 */ (1 << 3)) |
+  ((byte >> 4) & /* 0b00000010 */ (1 << 1)) |
+  ((byte >> 0) & /* 0b00010000 */ (1 << 4)) |
+  ((byte >> 1) & /* 0b00000100 */ (1 << 2)) |
+  ((byte << 3) & /* 0b00100000 */ (1 << 5)) |
+  ((byte << 5) & /* 0b01000000 */ (1 << 6)) |
+  ((byte << 7) & /* 0b10000000 */ (1 << 7))
+  );
+}
+
+unsigned char from_braille(chtype c) {
+  char byte = (c - 10240) & 0xFF;
+  return 
+  ((byte << 7) & /* 0b10000000 */ (1 << 7)) |
+  ((byte << 3) & /* 0b01000000 */ (1 << 6)) |
+  ((byte << 4) & /* 0b00100000 */ (1 << 5)) |
+  ((byte << 0) & /* 0b00010000 */ (1 << 4)) |
+  ((byte << 1) & /* 0b00001000 */ (1 << 3)) |
+  ((byte >> 3) & /* 0b00000100 */ (1 << 2)) |
+  ((byte >> 5) & /* 0b00000010 */ (1 << 1)) |
+  ((byte >> 7) & /* 0b00000001 */ (1 << 0));
+}
+
+/* if on is nonzero it will turn the pixel on, else off */
+chtype add_pixel(chtype c, int row, int col, int on) {
+  unsigned char byte = from_braille(c);
+  if (on) {
+    return to_braille(byte | (1 << ((2 * row - 1) + 1)));
+  } else {
+    return to_braille(byte & (~(1 << ((2 * row - 1) + 1))));
+  }
+}
+
+int draw_braille(char *data, int width, int y, int channels) {
+  int j;
+  int row = y/4;
+  for (j = 0; j < width; j++) {
+    char braille[5];
+    sprintf(braille, "%C", add_pixel(to_braille(0), j % 4, j % 2, 1));
+    mvaddstr(row, j, braille);
+    /* Get the character on the row and update it. */
+    fprintf(stderr, "%C\n", to_braille(0xdf));//mvinch(row, j));
+  }
+  return 0;
 }
 
 int draw_line(char *data, int width, int y, int channels, int do_refresh) {
