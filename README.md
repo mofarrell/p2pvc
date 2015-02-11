@@ -20,6 +20,10 @@ Arch users can install `p2pvc-git` from [the AUR](https://aur.archlinux.org/pack
 
      sudo apt-get install libncurses-dev libopencv-dev portaudio19-dev
 
+#### OS X (with Homebrew):
+
+     brew install ncurses portaudio opencv
+
 #### OS X (with MacPorts):
 
      sudo port install ncurses portaudio opencv
