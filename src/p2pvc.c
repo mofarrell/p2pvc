@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <locale.h>
+#include <fcntl.h>
 
 #include <audio.h>
 #include <video.h>
@@ -57,7 +58,7 @@ int main(int argc, char **argv) {
   char *audio_port = "55555";
   char *video_port = "55556";
   vid_options_t vopt;
-  int spawn_video = 0;
+  int spawn_video = 0, print_error = 0;
   int c;
   int width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT;
 
@@ -89,6 +90,12 @@ int main(int argc, char **argv) {
       default:
         break;
     }
+  }
+
+  if (print_error) {
+  } else {
+    int fd = open("/dev/null", O_WRONLY);
+    dup2(fd, STDERR_FILENO);
   }
 
   if (spawn_video) {
