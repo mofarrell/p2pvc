@@ -49,9 +49,13 @@ If you are running OSX, try the `portaudio` branch, and install the additional d
 
      ./p2pvc [ip address] -v -A 1337 -V 1338
 
-`-b` flag displays incoming bandwidth in the top-right of the video display
+`-b` flag displays incoming bandwidth in the top-right of the video display.
  
      ./p2pvc [ip address] -v -b
+
+`-e` to print stderr (which is by default routed to /dev/null).
+
+     ./p2pvc [ip address] -e
 
 # Known problems and resolutions
 
