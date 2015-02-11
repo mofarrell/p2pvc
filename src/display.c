@@ -47,6 +47,10 @@ static inline int get_color(int r, int g, int b) {
 
 const char ascii_values[] = " ..::--==+++***###%%%%%%%%@@@@@@@";
 
+int draw_braille(char *data, int width, int height, int channels) {
+  // Let the magic begin.
+}
+
 int draw_line(char *data, int width, int y, int channels) {
   int j;
   unsigned char b, g, r;
