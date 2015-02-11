@@ -53,9 +53,13 @@ Video chat with yourself to test the camera. (Be sure to mute your mic or speake
 
      ./p2pvc [ip address] -v -A 1337 -V 1338
 
-`-b` flag displays incoming bandwidth in the top-right of the video display
+`-b` flag displays incoming bandwidth in the top-right of the video display.
  
      ./p2pvc [ip address] -v -b
+
+`-e` to print stderr (which is by default routed to /dev/null).
+
+     ./p2pvc [ip address] -e
 
 # Known problems and resolutions
 
