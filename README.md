@@ -41,19 +41,19 @@ Video chat with yourself to test the camera. (Be sure to mute your mic or speake
 
 #### Flags
 
-`-v` flag enables video chat.
+`-v` enables video chat.
 
      ./p2pvc [ip address] -v
 
-`-d` flag allows you to specify the dimension of the video in either `[width]x[height]` or `[width]:[height]` format. Note that both users should specify the same dimension.
+`-d` sets the dimension of the video in either `[width]x[height]` or `[width]:[height]` format.
 
      ./p2pvc [ip address] -v -d 200x50
 
-`-A` and `-V` flags allow you to specify the port the audio and video run on respectively.
+`-A` and `-V` allow you to specify the port the audio and video run on respectively.
 
      ./p2pvc [ip address] -v -A 1337 -V 1338
 
-`-b` flag displays incoming bandwidth in the top-right of the video display.
+`-b` displays incoming bandwidth in the top-right of the video display.
  
      ./p2pvc [ip address] -v -b
 
@@ -64,6 +64,10 @@ Video chat with yourself to test the camera. (Be sure to mute your mic or speake
 `-B` renders in Braille Unicode characters.  Note that the dimensions must both be divisible by 4. 
 
      ./p2pvc [ip address] -v -B -d 200x152
+     
+`-r` sets the refresh rate.
+
+     ./p2pvc [ip address] -v -r 10
      
 ![Demo.]
 (http://fat.gfycat.com/WideRecklessChinesecrocodilelizard.gif)
