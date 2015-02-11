@@ -1,6 +1,7 @@
 #include <display.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <math.h>
 
 #define min(a,b) ((a)>(b)?(b):(a))
 
@@ -40,8 +41,23 @@ void end_screen(void) {
   endwin();
 }
 
+#define  PR  .299
+#define  PG  .587
+#define  PB  .114
+
+void saturate(int *r, int *g, int *b, double change) {
+
+  double p = sqrt((*r)*(*r)*PR + (*g)*(*g)*PG + (*b)*(*b)*PB);
+
+  *r = abs(p + ((*r) - p) * change);
+  *g = abs(p + ((*g) - p) * change);
+  *b = abs(p + ((*b) - p) * change);
+
+}
+
 /* allow us to directly map to the 216 colors ncurses makes available */
 static inline unsigned int get_color(int r, int g, int b) {
+  saturate(&r, &g, &b, 2.0);
   unsigned int f = (16+r/48*36+g/48*6+b/48);
   return f;
 }
