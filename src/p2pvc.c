@@ -71,6 +71,11 @@ int main(int argc, char **argv) {
   }
 
   char *peer = argv[1];
+  /* Check if the user actually wanted help. */
+  if (!strncmp(peer, "-h", 2)) {
+    usage(stdout);
+    exit(0);
+  }
   char *audio_port = "55555";
   char *video_port = "55556";
   vid_options_t vopt;
