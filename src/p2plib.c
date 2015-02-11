@@ -16,21 +16,23 @@
 #include <time.h>
 
 #define UDP_FLAGS         0
+#define BANDWIDTH_BUFLEN  1024
 
 static struct timespec prevPacket, currPacket;
 static long delta = -1;
-
+static unsigned int bandwidth_index;
+static double bandwidth_buf[BANDWIDTH_BUFLEN];
 
 /* @brief gives the bandwidth for a given packet size 
- * @return a long that represents the bandwidth in bytes/nanoseconds
+ * @return a double that represents the bandwidth in bytes/nanoseconds
  */
-
-long p2p_bandwidth(size_t packetsize) {
-  if (delta == -1) {
-    return 0;
-  } else {
-    return (packetsize/delta);
+double p2p_bandwidth() {
+  double tot = 0;
+  unsigned int i = 0;
+  for (i = 0; i < BANDWIDTH_BUFLEN; i++) {
+    tot += bandwidth_buf[i];
   }
+  return tot/BANDWIDTH_BUFLEN;
 }
 
 
@@ -271,7 +273,8 @@ int p2p_listener(connection_t **cons, size_t *conslen,
     memset(buf, 0, max_packet_size);
     int recv_len = recvfrom(socket, buf, max_packet_size, UDP_FLAGS, (struct sockaddr *)&(con.addr), &(con.addr_len));
 
-
+#ifdef __linux__
+/* Temporarily disable bandwidth.  Broken for OSX. */
     if (delta == -1) {
       clock_gettime(CLOCK_MONOTONIC, &prevPacket);
       delta = 0;
@@ -279,7 +282,10 @@ int p2p_listener(connection_t **cons, size_t *conslen,
       clock_gettime(CLOCK_MONOTONIC, &currPacket);
       delta = currPacket.tv_nsec - prevPacket.tv_nsec;
       clock_gettime(CLOCK_MONOTONIC, &prevPacket);
+      bandwidth_index = (bandwidth_index + 1) % BANDWIDTH_BUFLEN;
+      bandwidth_buf[bandwidth_index] = (double)recv_len/delta;
     }
+#endif
 
     /* Handle error UDP style (try again). */
     if (recv_len < 0) {

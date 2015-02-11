@@ -4,6 +4,8 @@
 #include <p2plib.h>
 #include <unistd.h>
 #include <signal.h>
+#include <locale.h>
+#include <fcntl.h>
 
 #include <audio.h>
 #include <video.h>
@@ -46,42 +48,82 @@ void get_dimensions(char dim[], int *width, int *height) {
   *height = atoi(hstr);
 }
 
+void usage(FILE *stream) {
+  fprintf(stream,
+    "Usage: p2pvc [-h] [server] [options]\n"
+    "A point to point color terminal video chat.\n"
+    "\n"
+    "  -v    Enable video chat.\n"
+    "  -d    Dimensions of video in either [width]x[height] or [width]:[height]\n"
+    "  -A    Audio port.\n"
+    "  -V    Video port.\n"
+    "  -b    Display incoming bandwidth in the top-right of the video display.\n"
+    "  -e    Print stderr (which is by default routed to /dev/null).\n"
+    "\n"
+    "Report bugs to https://github.com/mofarrell/p2pvc/issues.\n"
+  );
+}
+
 int main(int argc, char **argv) {
   if (argc < 2) {
-    fprintf(stderr, "Usage: p2pvc [server] [options]\n");
+    usage(stderr);
     exit(1);
   }
 
-  char *peer = NULL;
+  char *peer = argv[1];
+  /* Check if the user actually wanted help. */
+  if (!strncmp(peer, "-h", 2)) {
+    usage(stdout);
+    exit(0);
+  }
   char *audio_port = "55555";
   char *video_port = "55556";
-  int spawn_video = 0;
+  vid_options_t vopt;
+  int spawn_video = 0, print_error = 0;
   int c;
   int width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT;
-  while (optind < argc) {
-    if ((c = getopt (argc, argv, "vd:A:V:")) != -1) {
-      switch (c) {
-        case 'v':
-          spawn_video = 1;
-          break;
-        case 'A':
-          audio_port = optarg;
-          break;
-        case 'V':
-          video_port = optarg;
-          break;
-        case 'd':
-          get_dimensions(optarg, &width, &height);
-          break;
-        default:
-          break;
-      }
-    } else {
-      peer = argv[optind];
-      optind++;
+
+  setlocale(LC_ALL, "");
+
+  memset(&vopt, 0, sizeof(vid_options_t));
+  vopt.width = DEFAULT_WIDTH;
+  vopt.height = DEFAULT_HEIGHT;
+
+  while ((c = getopt (argc - 1, &(argv[1]), "bvd:A:V:he")) != -1) {
+    switch (c) {
+      case 'v':
+        spawn_video = 1;
+        break;
+      case 'A':
+        audio_port = optarg;
+        break;
+      case 'V':
+        video_port = optarg;
+        break;
+      case 'd':
+        get_dimensions(optarg, &width, &height);
+        vopt.width = width;
+        vopt.height = height;
+        break;
+      case 'b':
+        vopt.disp_bandwidth = 1;
+        break;
+      case 'h':
+        usage(stdout);
+        exit(0);
+        break;
+      case 'e':
+        print_error = 1;
+        break;
+      default:
+        break;
     }
   }
 
+  if (!print_error) {
+    int fd = open("/dev/null", O_WRONLY);
+    dup2(fd, STDERR_FILENO);
+  }
 
   if (spawn_video) {
     signal(SIGINT, all_shutdown);
@@ -90,7 +132,7 @@ int main(int argc, char **argv) {
     netopts.ipaddr = peer;
     netopts.port = audio_port;
     pthread_create(&thr, NULL, spawn_audio_thread, (void *)&netopts);
-    start_video(peer, video_port, width, height);
+    start_video(peer, video_port, &vopt);
   } else {
     signal(SIGINT, audio_shutdown);
     start_audio(peer, audio_port);
