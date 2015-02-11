@@ -10,8 +10,6 @@ A point to point color terminal video chat.
 
 Arch users can install `p2pvc-git` from [the AUR](https://aur.archlinux.org/packages/p2pvc-git/)
 
-## Build from source
-
 ### Dependencies
 
 * OpenCV
