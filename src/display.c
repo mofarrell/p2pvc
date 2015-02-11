@@ -15,6 +15,7 @@ void init_screen(void){
   keypad(stdscr, TRUE);           // keypad enabled
   (void) nodelay(main_screen, 1); // no blocking
   (void) noecho();                // don't print to screen
+  (void) curs_set(FALSE);         // don't show the cursor
   (void) nonl();                  // no new lines
   init_colors();
 }
