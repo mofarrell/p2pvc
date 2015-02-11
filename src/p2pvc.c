@@ -4,6 +4,7 @@
 #include <p2plib.h>
 #include <unistd.h>
 #include <signal.h>
+#include <locale.h>
 
 #include <audio.h>
 #include <video.h>
@@ -59,6 +60,8 @@ int main(int argc, char **argv) {
   int spawn_video = 0;
   int c;
   int width = DEFAULT_WIDTH, height = DEFAULT_HEIGHT;
+
+  setlocale(LC_ALL, "");
 
   memset(&vopt, 0, sizeof(vid_options_t));
   vopt.width = DEFAULT_WIDTH;
