@@ -21,10 +21,10 @@ LDFLAGS+=`pkg-config --libs opencv`
 
 all: p2pvc
 
-debug: CC+=$(CFLAGS_DEBUG)
-debug: p2pvc .FORCE
+.PHONY: all clean debug
 
-.FORCE:
+debug: CC := $(CC) $(CFLAGS_DEBUG)
+debug: clean p2pvc
 
 p2pvc: $(OBJS)
 	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)

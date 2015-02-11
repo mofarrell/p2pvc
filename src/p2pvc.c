@@ -61,6 +61,8 @@ void usage(FILE *stream) {
     "  -V    Video port.\n"
     "  -b    Display incoming bandwidth in the top-right of the video display.\n"
     "  -e    Print stderr (which is by default routed to /dev/null).\n"
+    "  -c    Use a specified colour (i.e green is 0:100:0).\n"
+    "  -a    Use custom ascii to print the video.\n"
     "\n"
     "Report bugs to https://github.com/mofarrell/p2pvc/issues.\n"
   );
