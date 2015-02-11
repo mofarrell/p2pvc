@@ -6,6 +6,7 @@
 #include <signal.h>
 #include <locale.h>
 #include <fcntl.h>
+#include <inttypes.h>
 
 #include <audio.h>
 #include <video.h>
@@ -31,6 +32,7 @@ void audio_shutdown(int signal) {
 void all_shutdown(int signal) {
   video_shutdown(signal);
   audio_shutdown(signal);
+  kill(getpid(), SIGKILL);
   exit(0);
 }
 
@@ -91,7 +93,7 @@ int main(int argc, char **argv) {
   vopt.render_type = 0;
   vopt.refresh_rate = 20;
 
-  while ((c = getopt (argc - 1, &(argv[1]), "bvd:A:V:heBr:")) != -1) {
+  while ((c = getopt (argc - 1, &(argv[1]), "bvd:A:V:heBI:s:c:a:r:")) != -1) {
     switch (c) {
       case 'v':
         spawn_video = 1;
@@ -111,10 +113,23 @@ int main(int argc, char **argv) {
         vopt.disp_bandwidth = 1;
         break;
       case 'r':
-        vopt.refresh_rate = atol(optarg);
+        sscanf(optarg, "%lu", &vopt.refresh_rate);
         break;
       case 'B':
         vopt.render_type = 1;
+        break;
+      case 'I':
+        sscanf(optarg, "%d", &vopt.intensity_threshold);
+        break;
+      case 's':
+        sscanf(optarg, "%lf", &vopt.saturation);
+        break;
+      case 'c':
+        vopt.monochrome = 1;
+        sscanf(optarg, "%" SCNd8 ":%" SCNd8 ":%" SCNd8, &vopt.r, &vopt.g, &vopt.b);
+        break;
+      case 'a':
+        vopt.ascii_values = optarg;
         break;
       case 'h':
         usage(stdout);

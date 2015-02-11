@@ -68,6 +68,18 @@ Video chat with yourself to test the camera. (Be sure to mute your mic or speake
 `-B` renders in Braille Unicode characters.  Note that the dimensions must both be divisible by 4. 
 
      ./p2pvc [ip address] -v -B -d 200x152
+
+`-I` sets the threshold for turning pixels on (when using the `-B` flag).  Ranges from 1 - 99, defaults 25.
+
+     ./p2pvc [ip address] -v -B -I 50
+
+`-c` sets the color of the video.  Used in the form `[r]:[g]:[b]`.  Each color ranges from 0 - 100.
+
+     ./p2pvc [ip address] -v -c 0:100:0
+
+`-s` sets the saturation of the colors in the video.  0.0 is greyscale, 2.0 is default.
+
+     ./p2pvc [ip address] -v -s 3.0
      
 `-r` sets the refresh rate.
 

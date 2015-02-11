@@ -15,7 +15,6 @@
 static connection_t *cons;
 static size_t conslen;
 static pthread_mutex_t conslock;
-static pthread_mutex_t buffer_lock;
 static CvCapture* cv_cap;
 static int disp_bandwidth = 0;
 static int width;
@@ -24,7 +23,6 @@ static int depth = COLOR_DEPTH;
 static int render_type; /* 0 default, 1 braille */
 
 static void callback(connection_t *con, void *data, size_t length) {
-  pthread_mutex_lock(&buffer_lock);
   unsigned long index = ntohl(((unsigned long*)data)[0]);
   int y = index;
 
@@ -40,7 +38,6 @@ static void callback(connection_t *con, void *data, size_t length) {
     sprintf(bandstr, " Bandwidth : %f MB/s", 1000 * p2p_bandwidth());
     write_bandwidth(bandstr, strlen(bandstr), width, height);
   }
-  pthread_mutex_unlock(&buffer_lock);
 }
 
 static void new_callback(connection_t *con, void *data, size_t datalen) {
@@ -70,10 +67,20 @@ int start_video(char *peer, char *port, vid_options_t *vopt) {
   render_type = vopt->render_type;
   disp_bandwidth = vopt->disp_bandwidth;
 
-  init_screen();
+  display_options_t dopt;
+  memset(&dopt, 0, sizeof(display_options_t));
+
+  dopt.intensity_threshold = vopt->intensity_threshold;
+  dopt.saturation = vopt->saturation;
+  dopt.monochrome = vopt->monochrome;
+  dopt.r = vopt->r;
+  dopt.g = vopt->g;
+  dopt.b = vopt->b;
+  dopt.ascii_values = vopt->ascii_values;
+
+  init_screen(&dopt);
   curs_set(0);
   pthread_mutex_init(&conslock, NULL);
-  pthread_mutex_init(&buffer_lock, NULL);
 
   cons = calloc(1, sizeof(connection_t));
   if (p2p_connect(peer, port, &(cons[0]))) {

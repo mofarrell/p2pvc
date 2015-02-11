@@ -2,15 +2,21 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 
 #define min(a,b) ((a)>(b)?(b):(a))
 
 WINDOW *main_screen;
+static int intensity_threshold = 25;
+static double saturation = 2.0;
+static char *ascii_values = " ..::--==+++***###%%%%%%%%@@@@@@@";
+static int monochrome = 0;
+char gr; char gg; char gb;
 
 /* private functions */
 void init_colors(void);
 
-void init_screen(void){
+void init_screen(display_options_t *dopt){
   main_screen = initscr();
   keypad(stdscr, TRUE);           // keypad enabled
   (void) nodelay(main_screen, 1); // no blocking
@@ -18,6 +24,19 @@ void init_screen(void){
   (void) curs_set(FALSE);         // don't show the cursor
   (void) nonl();                  // no new lines
   init_colors();
+  gr = dopt->r;
+  gg = dopt->g;
+  gb = dopt->b;
+  monochrome = dopt->monochrome;
+  if (dopt->ascii_values) {
+    ascii_values = dopt->ascii_values;
+  }
+  if (dopt->saturation > 1.0) {
+    saturation = dopt->saturation;
+  }
+  if (dopt->intensity_threshold) {
+    intensity_threshold = dopt->intensity_threshold;
+  }
 }
 
 /*
@@ -47,48 +66,49 @@ void end_screen(void) {
 #define  PB  .114
 
 void saturate(int *r, int *g, int *b, double change) {
-
   double p = sqrt((*r)*(*r)*PR + (*g)*(*g)*PG + (*b)*(*b)*PB);
 
   *r = abs(p + ((*r) - p) * change);
   *g = abs(p + ((*g) - p) * change);
   *b = abs(p + ((*b) - p) * change);
-
 }
 
 /* allow us to directly map to the 216 colors ncurses makes available */
 static inline unsigned int get_color(int r, int g, int b) {
-  saturate(&r, &g, &b, 2.0);
-  unsigned int f = (16+r/48*36+g/48*6+b/48);
+  unsigned int f;
+  if (monochrome) {
+    f = (16+gr/48*36+gg/48*6+gb/48);
+  } else {
+    saturate(&r, &g, &b, saturation);
+    f = (16+r/48*36+g/48*6+b/48);
+  }
   return f;
 }
 
-const char ascii_values[] = " ..::--==+++***###%%%%%%%%@@@@@@@";
-
 chtype to_braille(unsigned char byte) {
   return 10240 + (
-  ((byte >> 7) & /* 0b00000001 */ (1 << 0)) |
-  ((byte >> 3) & /* 0b00001000 */ (1 << 3)) |
-  ((byte >> 4) & /* 0b00000010 */ (1 << 1)) |
-  ((byte >> 0) & /* 0b00010000 */ (1 << 4)) |
-  ((byte >> 1) & /* 0b00000100 */ (1 << 2)) |
-  ((byte << 3) & /* 0b00100000 */ (1 << 5)) |
-  ((byte << 5) & /* 0b01000000 */ (1 << 6)) |
-  ((byte << 7) & /* 0b10000000 */ (1 << 7))
+  ((byte >> 7) & (1 << 0)) |
+  ((byte >> 3) & (1 << 3)) |
+  ((byte >> 4) & (1 << 1)) |
+  ((byte >> 0) & (1 << 4)) |
+  ((byte >> 1) & (1 << 2)) |
+  ((byte << 3) & (1 << 5)) |
+  ((byte << 5) & (1 << 6)) |
+  ((byte << 7) & (1 << 7))
   );
 }
 
 unsigned char from_braille(chtype c) {
   char byte = (c - 10240) & 0xFF;
   return 
-  ((byte << 7) & /* 0b10000000 */ (1 << 7)) |
-  ((byte << 3) & /* 0b01000000 */ (1 << 6)) |
-  ((byte << 4) & /* 0b00100000 */ (1 << 5)) |
-  ((byte << 0) & /* 0b00010000 */ (1 << 4)) |
-  ((byte << 1) & /* 0b00001000 */ (1 << 3)) |
-  ((byte >> 3) & /* 0b00000100 */ (1 << 2)) |
-  ((byte >> 5) & /* 0b00000010 */ (1 << 1)) |
-  ((byte >> 7) & /* 0b00000001 */ (1 << 0));
+  ((byte << 7) & (1 << 7)) |
+  ((byte << 3) & (1 << 6)) |
+  ((byte << 4) & (1 << 5)) |
+  ((byte << 0) & (1 << 4)) |
+  ((byte << 1) & (1 << 3)) |
+  ((byte >> 3) & (1 << 2)) |
+  ((byte >> 5) & (1 << 1)) |
+  ((byte >> 7) & (1 << 0));
 }
 
 /* if on is nonzero it will turn the pixel on, else off */
@@ -118,7 +138,7 @@ int draw_braille(char *data, int width, int y, int channels) {
     if (y % 4 == 0) {
       sprintf(braille, "%C", to_braille(0));
     }
-    if (intensity > 25) {
+    if (intensity > intensity_threshold) {
       sprintf(braille, "%C", add_pixel(mvinch(row, j / 2), 3 - (y % 4), 1 - (j % 2), 1));
     } else {
       sprintf(braille, "%C", add_pixel(mvinch(row, j / 2), 3 - (y % 4), 1 - (j % 2), 0));
@@ -139,7 +159,7 @@ int draw_line(char *data, int width, int y, int channels) {
     b = data[j * channels];
     g = data[j * channels + 1];
     r = data[j * channels + 2];
-    intensity = (sizeof(ascii_values) - 1) * ((r/255.0 + g/255.0 + b/255.0) / 3);
+    intensity = (strlen(ascii_values) - 1) * ((r/255.0 + g/255.0 + b/255.0) / 3);
     char val = ascii_values[intensity];
     int color = get_color(r, g, b);
     if (COLORS < 255) {

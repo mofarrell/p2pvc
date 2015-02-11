@@ -8,6 +8,11 @@ typedef struct {
   int disp_bandwidth;
   int render_type;
   unsigned long refresh_rate;
+  int intensity_threshold;
+  double saturation;
+  int monochrome;
+  char r; char g; char b;
+  char *ascii_values;
 } vid_options_t;
 
 void video_shutdown(int signal);
