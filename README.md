@@ -81,6 +81,10 @@ Video chat with yourself to test the camera. (Be sure to mute your mic or speake
 
      ./p2pvc [ip address] -v -s 3.0
      
+`-a` sets custom ASCII character maps.  Repeat characters to weight their frequency.
+
+     ./p2pvc [ip address] -v -a " ......#####"
+     
 `-r` sets the refresh rate.
 
      ./p2pvc [ip address] -v -r 10
