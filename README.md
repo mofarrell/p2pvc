@@ -61,9 +61,9 @@ Video chat with yourself to test the camera. (Be sure to mute your mic or speake
 
      ./p2pvc [ip address] -e
      
-`-B` renders in Braille Unicode characters.
+`-B` renders in Braille Unicode characters.  Note that the dimensions must both be divisible by 4.
 
-     ./p2pvc [ip address] -v -B -d 200x120
+     ./p2pvc [ip address] -v -B -d 200x152
 
 # Known problems and resolutions
 
