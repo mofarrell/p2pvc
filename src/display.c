@@ -77,21 +77,41 @@ unsigned char from_braille(chtype c) {
 chtype add_pixel(chtype c, int row, int col, int on) {
   unsigned char byte = from_braille(c);
   if (on) {
-    return to_braille(byte | (1 << ((2 * row - 1) + 1)));
+    return to_braille(byte | (1 << (2 * row + col)));
   } else {
-    return to_braille(byte & (~(1 << ((2 * row - 1) + 1))));
+    return to_braille(byte & (~(1 << (2 * row + col))));
   }
 }
 
 int draw_braille(char *data, int width, int y, int channels) {
   int j;
   int row = y/4;
+  unsigned char b, g, r;
+  int intensity;
   for (j = 0; j < width; j++) {
-    char braille[5];
-    sprintf(braille, "%C", add_pixel(to_braille(0), j % 4, j % 2, 1));
-    mvaddstr(row, j, braille);
+    b = data[j * channels];
+    g = data[j * channels + 1];
+    r = data[j * channels + 2];
+    intensity = 100 * ((r/255.0 + g/255.0 + b/255.0) / 3);
+    int color = get_color(r, g, b);
+    int bg_color = get_color(r / 2, g / 2, b / 2);
+
+    char braille[2];
+    attron(COLOR_PAIR(color));
+    if (y % 4 == 0) {
+      sprintf(braille, "%C", to_braille(0));
+    }
+    if (intensity > 25) {
+      sprintf(braille, "%C", add_pixel(mvinch(row, j / 2), 3 - (y % 4), 1 - (j % 2), 1));
+    } else {
+      sprintf(braille, "%C", add_pixel(mvinch(row, j / 2), 3 - (y % 4), 1 - (j % 2), 0));
+    }
+    mvaddstr(row, j / 2, braille);
     /* Get the character on the row and update it. */
-    fprintf(stderr, "%C\n", to_braille(0xdf));//mvinch(row, j));
+    //fprintf(stderr, "%C%x\n", to_braille(0x99), from_braille(to_braille(0x99)));//mvinch(row, j));
+  }
+  if (y == 0) {
+    refresh();
   }
   return 0;
 }
