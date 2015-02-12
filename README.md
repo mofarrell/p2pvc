@@ -49,7 +49,7 @@ Video chat with yourself to test the camera. (Be sure to mute your mic or speake
 
      ./p2pvc [ip address] -v
 
-`-d` sets the dimension of the video in either `[width]x[height]` or `[width]:[height]` format.
+`-d` sets the dimension of the video in `[width]x[height]` format.
 
      ./p2pvc [ip address] -v -d 200x50
 

@@ -36,20 +36,6 @@ void all_shutdown(int signal) {
   exit(0);
 }
 
-void get_dimensions(char dim[], int *width, int *height) {
-  int i;
-  char *wstr = (char *)dim, *hstr;
-  for (i = 0; i < sizeof(dim); i++) {
-    if ((dim[i] == 'x' || dim[i] == ':') && (i + 1 < sizeof(dim))) {
-      dim[i] = '\0';
-      hstr = &(dim[i+1]);
-    }
-  }
-
-  *width = atoi(wstr);
-  *height = atoi(hstr);
-}
-
 void usage(FILE *stream) {
   fprintf(stream,
     "Usage: p2pvc [-h] [server] [options]\n"
@@ -111,7 +97,7 @@ int main(int argc, char **argv) {
         video_port = optarg;
         break;
       case 'd':
-        get_dimensions(optarg, &width, &height);
+        sscanf(optarg, "%dx%d", &width, &height);
         vopt.width = width;
         vopt.height = height;
         break;
