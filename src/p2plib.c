@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <p2plib.h>
-#include <string.h>
 #include <errno.h>
 #include <err.h>
 #include <netdb.h>
