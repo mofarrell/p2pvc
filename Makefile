@@ -3,7 +3,7 @@ OBJDIR=objs
 SRCDIR=src
 INCDIR=$(SRCDIR)/inc
 CFLAGS+=-I$(INCDIR)
-platform=$(shell uname -o)
+platform=$(shell uname -s)
 
 SRCS=$(wildcard $(SRCDIR)/*.c)
 OBJS=$(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
