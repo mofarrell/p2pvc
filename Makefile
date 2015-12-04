@@ -3,13 +3,13 @@ OBJDIR=objs
 SRCDIR=src
 INCDIR=$(SRCDIR)/inc
 CFLAGS+=-I$(INCDIR)
-platform=$(shell uname -o)
+platform=$(shell uname -s)
 
 SRCS=$(wildcard $(SRCDIR)/*.c)
 OBJS=$(patsubst $(SRCDIR)/%.c,$(OBJDIR)/%.o,$(SRCS))
 
 CFLAGS+=-O2 -Wall
-ifeq ($(platform), GNU/Linux)
+ifeq ($(platform), Linux)
 CFLAGS+=-DPA_USE_ALSA
 else
 CFLAGS+=-DPA_USE_COREAUDIO
