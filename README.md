@@ -1,8 +1,7 @@
 # p2pvc
 A point to point color terminal video chat.
 
-![demo]
-(http://giant.gfycat.com/HideousSpiffyAdder.gif)
+![Demo](http://giant.gfycat.com/HideousSpiffyAdder.gif)
 
 [and here's a still image](http://i.imgur.com/ziRPCWE.png)
 
@@ -94,8 +93,7 @@ Video chat with yourself to test the camera. (Be sure to mute your mic or speake
 
      ./p2pvc [ip address] -v -r 10
      
-![Demo.]
-(http://fat.gfycat.com/WideRecklessChinesecrocodilelizard.gif)
+![Demo](http://fat.gfycat.com/WideRecklessChinesecrocodilelizard.gif)
 # Known problems and resolutions
 
 #### Black and white
