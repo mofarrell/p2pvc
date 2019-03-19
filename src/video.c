@@ -1,4 +1,4 @@
-#include <cv.h>
+#include <opencv2/videoio/videoio_c.h>
 #include <highgui.h>
 #include <stdio.h>
 
