@@ -1,4 +1,3 @@
-CC=gcc
 OBJDIR=objs
 SRCDIR=src
 INCDIR=$(SRCDIR)/inc
