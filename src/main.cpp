@@ -1,5 +1,6 @@
-#include <iostream>
 #include "network.h"
+
+#include <iostream>
 
 int main(int argc, char *argv[]) {
   // thread 1
