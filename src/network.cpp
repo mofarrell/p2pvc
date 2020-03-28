@@ -66,10 +66,32 @@ TCPServer::TCPServer() noexcept {
       printf("Client port is %d\n", ntohs(clientaddr.sin6_port));
     }
   }
+  if (setsockopt(sdconn, SOL_SOCKET, SO_RCVLOWAT,
+        (char *)&rcdsize,sizeof(rcdsize)) < 0) {
+    perror("setsockopt(SO_RCVLOWAT) failed");
+    return;
+  }
+  rc = recv(sdconn, buffer, sizeof(buffer), 0);
+  if (rc < 0) {
+    perror("recv() failed");
+    return;
+  }
+  printf("%d bytes of data were received\n", rc);
+  if (rc == 0 || rc < sizeof(buffer)) {
+    printf("The client closed the connection before all of the\n");
+    printf("data was sent\n");
+    return;
+  }
+  rc = send(sdconn, buffer, sizeof(buffer), 0);
+  if (rc < 0) {
+    perror("send() failed");
+    return;
+  }
 }
 
 TCPClient::TCPClient() noexcept {
   int    sd=-1, rc, bytesReceived=0;
+  int rcdsize=BUFFER_LENGTH;
   char   buffer[BUFFER_LENGTH];
   char   server[MAX_HOST_NAME_LENGTH];
   char   servport[] = "3002";
@@ -112,6 +134,17 @@ TCPClient::TCPClient() noexcept {
   rc = connect(sd, res->ai_addr, res->ai_addrlen);
   if (rc < 0) {
     perror("connect() failed");
+    return;
+  }
+  if (setsockopt(sd, SOL_SOCKET, SO_RCVLOWAT,
+        (char *)&rcdsize,sizeof(rcdsize)) < 0) {
+    perror("setsockopt(SO_RCVLOWAT) failed");
+    return;
+  }
+  memset(buffer, 'a', sizeof(buffer));
+  rc = send(sd, buffer, sizeof(buffer), 0);
+  if (rc < 0) {
+    perror("send() failed");
     return;
   }
   printf("done\n");
