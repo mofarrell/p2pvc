@@ -11,14 +11,18 @@ int main(int argc, char *argv[]) {
   if (argc == 3) {
     port = std::stoi(argv[2]);
   } else if (argc == 2 && argv[1][0] == '-' && argv[1][1] == 'v') {
-    Video v{};
-    Curses c{};
-    auto frm = v.frame();
-    while (true) {
-      c.checkInput();
-      v.captureFrame(&frm);
-      c.draw(frm, 5, 5, 80, 300);
-      usleep(10000);
+    try {
+      Video v{};
+      Curses c{};
+      while (true) {
+        c.checkInput();
+        auto frm = v.frame();
+        v.captureFrame(&frm);
+        c.draw(frm, 5, 5, 80, 300);
+        usleep(10000);
+      }
+    } catch (const std::exception& e) {
+      std::cerr << e.what() << "\n";
     }
     return 0;
   } else if (argc == 2) {

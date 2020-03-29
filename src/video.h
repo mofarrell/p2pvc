@@ -149,12 +149,20 @@ private:
 };
 
 struct Video {
-  Video() : m_vc(0) {
-    if (!m_vc.isOpened()) {
-        throw std::runtime_error("Failed to setup camera for video capture.");
+  void initCamera() {
+    if (camera_index > 99) {
+      throw std::runtime_error("Couldn't find camera after trying 100 OpenCV cv::VdieoCapture IDs.");
     }
+    m_vc = cv::VideoCapture(camera_index);
     m_height = m_vc.get(cv::CAP_PROP_FRAME_HEIGHT);
     m_width = m_vc.get(cv::CAP_PROP_FRAME_WIDTH);
+  }
+
+  Video() {
+    initCamera();
+    if (!m_vc.isOpened()) {
+      throw std::runtime_error("Failed to setup camera for video capture.  Please allow camera access and retry.");
+    }
   }
 
   ~Video() {
@@ -167,13 +175,16 @@ struct Video {
   void captureFrame(Frame* frame) {
     cv::Mat frameMat(m_height, m_width, CV_8UC(CHANNELS), frame->data());
     if (!m_vc.read(frameMat)) {
-      throw std::runtime_error("No frame grabbed yet.");
+      camera_index++;
+      initCamera();
+      return;
     }
   }
 
 private:
   uint32_t m_height;
   uint32_t m_width;
+  size_t camera_index = 0;
   cv::VideoCapture m_vc;
 };
 
