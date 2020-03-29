@@ -1,5 +1,7 @@
 #pragma once
 
+#include "frame.h"
+
 #include <opencv2/opencv.hpp>
 
 #include <ncurses.h>
@@ -30,38 +32,29 @@ private:
   uint8_t m_blue;
 };
 
-struct Frame {
-  Frame(uint32_t height, uint32_t width)
-  : m_height(height)
-  , m_width(width)
-  , m_channels(CHANNELS)
-  , m_data(m_width * m_height * m_channels)
+struct VideoFrame : Frame<uint8_t, 3> {
+  VideoFrame(uint32_t height, uint32_t width)
+  : Frame({height, width, CHANNELS})
   {}
 
   uint32_t height() const {
-    return m_height;
+    return dim(0);
   }
 
   uint32_t width() const {
-    return m_width;
+    return dim(1);
+  }
+
+  uint32_t channels() const {
+    return dim(2);
   }
 
   Pixel pixel(uint32_t y, uint32_t x) const {
-    assert(m_channels == CHANNELS);
-    assert((y * m_width + x) * m_channels + 2 < m_data.size());
-    auto const ptr = &m_data[(y * m_width + x) * m_channels];
+    assert(channels() == CHANNELS);
+    assert((y * width() + x) * channels() + 2 < size());
+    auto const ptr = &data()[(y * width() + x) * channels()];
     return Pixel(ptr[2], ptr[1], ptr[0]);
   }
-
-  uint8_t* data() {
-    return m_data.data();
-  }
-   
-private:
-  uint32_t m_height;
-  uint32_t m_width;
-  uint32_t m_channels;
-  std::vector<uint8_t> m_data;
 };
 
 struct Curses {
@@ -90,7 +83,7 @@ struct Curses {
   }
 
   void draw(
-    const Frame& frame,
+    const VideoFrame& frame,
     uint32_t startRow,
     uint32_t startCol,
     uint32_t height,
@@ -168,11 +161,11 @@ struct Video {
   ~Video() {
   }
   
-  Frame frame() {
-    return Frame(m_height, m_width);
+  VideoFrame frame() {
+    return VideoFrame(m_height, m_width);
   }
 
-  void captureFrame(Frame* frame) {
+  void captureFrame(VideoFrame* frame) {
     cv::Mat frameMat(m_height, m_width, CV_8UC(CHANNELS), frame->data());
     if (!m_vc.read(frameMat)) {
       camera_index++;

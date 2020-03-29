@@ -2,8 +2,12 @@
 #ifdef USE_OPENCV
 #include "video.h"
 #endif
+#ifdef USE_PORTAUDIO
+#include "audio.h"
+#endif
 
 #include <iostream>
+#include <thread>
 
 #include <string.h>
 #include <unistd.h>
@@ -29,6 +33,40 @@ int main(int argc, char *argv[]) {
       std::cerr << e.what() << "\n";
     }
     return 0;
+#ifdef USE_PORTAUDIO
+  } else if (argc == 2 && argv[1][0] == '-' && argv[1][1] == 'a' && argv[1][2] == 'v') {
+    std::thread t([&] {
+      Audio a{};
+      auto inFrame = a.createInputFrame();
+      auto outFrame = a.createOutputFrame();
+      assert(inFrame.size() == outFrame.size());
+      assert(inFrame.channels() == outFrame.channels());
+      assert(inFrame.samples() == outFrame.samples());
+      bool outputReady = false;
+      while (true) {
+        a.waitForPending();
+        if (a.input(inFrame)) {
+          std::swap(inFrame, outFrame);
+          outputReady = true;
+        }
+        if (outputReady) {
+          if (a.output(outFrame)) {
+            outputReady = false;
+          }
+        }
+      }
+    });
+    Video v{};
+    Curses c{};
+    auto frm = v.frame();
+    while (true) {
+      c.checkInput();
+      v.captureFrame(&frm);
+      c.draw(frm, 5, 5, 80, 300);
+      usleep(10000);
+    }
+    return 0;
+#endif
 #endif
   } else if (argc == 2) {
     port = std::stoi(argv[1]);
