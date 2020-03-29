@@ -5,7 +5,8 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/types.h>
-
+#include <string.h>
+#include <assert.h>
 
 TCPConn::TCPConn(int socket, size_t buf_len) : socket_(socket), buf_len_(buf_len) {
   struct sockaddr_in6 clientaddr;
