@@ -137,6 +137,8 @@ TCPConn TCPConn::create(std::string server, size_t port, size_t buf_len) {
   return TCPConn(sd, buf_len);
 }
 
+#define MAX_UDP_LEN 1024 
+
 UDPServer::UDPServer(int port) noexcept {
   int sd = -1;
   int on = 1;
@@ -164,28 +166,26 @@ UDPServer::UDPServer(int port) noexcept {
   socket_ = sd;
 }
 
-UDPConn UDPServer::listen() {
+UDPConn UDPServer::recv(void* out, size_t* len) {
+  assert(socket_ != -1);
   struct sockaddr_in6 cliaddr; 
   memset(&cliaddr, 0, sizeof(cliaddr)); 
 
-  unsigned int len, n; 
-
-  char buffer[1024]; 
-
-  len = sizeof(cliaddr);  //len is value/resuslt 
-  n = recvfrom(socket_, (char *)buffer, 1024,
-      MSG_WAITALL, ( struct sockaddr *) &cliaddr, 
-      &len); 
+  unsigned int cliaddr_len = sizeof(cliaddr);  //len is value/resuslt 
+  *len = recvfrom(socket_, (char *)out, BUFFER_LENGTH,
+      0, ( struct sockaddr *) &cliaddr, 
+      &cliaddr_len); 
   return UDPConn(socket_, cliaddr);
 }
 
 UDPConn::UDPConn(int socket, struct sockaddr_in6 sockaddr) : socket_(socket), sockaddr_(sockaddr) {
+  assert(socket_ != 0);
   //unsigned int addrlen = sizeof(sockaddr_);
   //getpeername(socket_, (struct sockaddr *)&sockaddr_, &addrlen);
   char str[INET6_ADDRSTRLEN];
+  port_ = ntohs(sockaddr_.sin6_port);
   if (inet_ntop(AF_INET6, &sockaddr_.sin6_addr, str, sizeof(str))) {
     addr_ = str;
-    port_ = ntohs(sockaddr_.sin6_port);
   }
 }
 
@@ -223,4 +223,20 @@ UDPConn UDPConn::create(std::string server, size_t port) {
   sd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
   return UDPConn(sd, serveraddr);
 }
+
+void UDPConn::recv(void* out, size_t* len) {
+  assert(socket_ != 0);
+  unsigned int addr_size;
+  *len = recvfrom(socket_, (char *)out, BUFFER_LENGTH,
+      0, ( struct sockaddr *) &sockaddr_, 
+      &addr_size);
+}
+
+void UDPConn::send(void* in, size_t len) {
+  assert(socket_ != 0);
+  sendto(socket_, (const char *)in, len, 
+    0, (const struct sockaddr *) &sockaddr_,  
+    sizeof(sockaddr_)); 
+}
+
 

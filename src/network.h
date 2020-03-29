@@ -39,6 +39,8 @@ struct UDPConn {
   UDPConn() = default;
   UDPConn(int socket, struct sockaddr_in6 sockaddr);
   static UDPConn create(std::string server, size_t port);
+  void recv(void* out, size_t* len);
+  void send(void* in, size_t len);
  private:
   int socket_ = -1;
   struct sockaddr_in6 sockaddr_;
@@ -48,7 +50,7 @@ struct UDPConn {
 
 struct UDPServer {
   UDPServer(int port) noexcept;
-  UDPConn listen();
+  UDPConn recv(void* out, size_t* len);
  private:
   int socket_ = -1;
 };
