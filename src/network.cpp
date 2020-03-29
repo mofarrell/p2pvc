@@ -1,10 +1,5 @@
 #include "network.h"
-#include <arpa/inet.h>
 #include <iostream>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <sys/types.h>
 #include <string.h>
 #include <assert.h>
 
@@ -100,7 +95,8 @@ TCPConn TCPServer::listen() {
 }
 
 TCPConn TCPConn::create(std::string server, size_t port, size_t buf_len) {
-  int sd = -1, rc, bytesReceived = 0;
+  int sd = -1;
+  int rc;
   int rcdsize = buf_len;
   auto port_str = std::to_string(port);
   struct in6_addr serveraddr;
@@ -110,15 +106,12 @@ TCPConn TCPConn::create(std::string server, size_t port, size_t buf_len) {
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
   rc = inet_pton(AF_INET, server.c_str(), &serveraddr);
-  if (rc == 1) /* valid IPv4 text address? */
-  {
+  if (rc == 1) { /* valid IPv4 text address? */
     hints.ai_family = AF_INET;
     hints.ai_flags |= AI_NUMERICHOST;
   } else {
     rc = inet_pton(AF_INET6, server.c_str(), &serveraddr);
-    if (rc == 1) /* valid IPv6 text address? */
-    {
-
+    if (rc == 1) { /* valid IPv6 text address? */
       hints.ai_family = AF_INET6;
       hints.ai_flags |= AI_NUMERICHOST;
     }
@@ -143,3 +136,91 @@ TCPConn TCPConn::create(std::string server, size_t port, size_t buf_len) {
   }
   return TCPConn(sd, buf_len);
 }
+
+UDPServer::UDPServer(int port) noexcept {
+  int sd = -1;
+  int on = 1;
+  struct sockaddr_in6 serveraddr;
+
+  if ((sd = socket(AF_INET6, SOCK_DGRAM, 0)) < 0) {
+    perror("socket() failed");
+    return;
+  }
+
+  if (setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, (char *)&on, sizeof(on)) < 0) {
+    perror("setsockopt(SO_REUSEADDR) failed");
+    return;
+  }
+
+  memset(&serveraddr, 0, sizeof(serveraddr));
+  serveraddr.sin6_family = AF_INET6;
+  serveraddr.sin6_port = htons(port);
+
+  if (bind(sd, (struct sockaddr *)&serveraddr, sizeof(serveraddr)) < 0) {
+    perror("bind() failed");
+    return;
+  }
+
+  socket_ = sd;
+}
+
+UDPConn UDPServer::listen() {
+  struct sockaddr_in6 cliaddr; 
+  memset(&cliaddr, 0, sizeof(cliaddr)); 
+
+  unsigned int len, n; 
+
+  char buffer[1024]; 
+
+  len = sizeof(cliaddr);  //len is value/resuslt 
+  n = recvfrom(socket_, (char *)buffer, 1024,
+      MSG_WAITALL, ( struct sockaddr *) &cliaddr, 
+      &len); 
+  return UDPConn(socket_, cliaddr);
+}
+
+UDPConn::UDPConn(int socket, struct sockaddr_in6 sockaddr) : socket_(socket), sockaddr_(sockaddr) {
+  //unsigned int addrlen = sizeof(sockaddr_);
+  //getpeername(socket_, (struct sockaddr *)&sockaddr_, &addrlen);
+  char str[INET6_ADDRSTRLEN];
+  if (inet_ntop(AF_INET6, &sockaddr_.sin6_addr, str, sizeof(str))) {
+    addr_ = str;
+    port_ = ntohs(sockaddr_.sin6_port);
+  }
+}
+
+UDPConn UDPConn::create(std::string server, size_t port) {
+  int sd = -1;
+  int rc;
+  auto port_str = std::to_string(port);
+  struct sockaddr_in6 serveraddr;
+  serveraddr.sin6_family = AF_INET6;
+  serveraddr.sin6_port = htons(port);
+  struct addrinfo hints, *res = NULL;
+  memset(&hints, 0x00, sizeof(hints));
+  hints.ai_flags = AI_NUMERICSERV;
+  hints.ai_family = AF_UNSPEC;
+  hints.ai_socktype = SOCK_DGRAM;
+  rc = inet_pton(AF_INET, server.c_str(), &serveraddr.sin6_addr);
+  if (rc == 1) { /* valid IPv4 text address? */
+    hints.ai_family = AF_INET;
+    hints.ai_flags |= AI_NUMERICHOST;
+  } else {
+    rc = inet_pton(AF_INET6, server.c_str(), &serveraddr.sin6_addr);
+    if (rc == 1) { /* valid IPv6 text address? */
+      hints.ai_family = AF_INET6;
+      hints.ai_flags |= AI_NUMERICHOST;
+    }
+  }
+  rc = getaddrinfo(server.c_str(), port_str.c_str(), &hints, &res);
+  if (rc != 0) {
+    printf("Host not found --> %s\n", gai_strerror(rc));
+    if (rc == EAI_SYSTEM) {
+      perror("getaddrinfo() failed");
+      return UDPConn();
+    }
+  }
+  sd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+  return UDPConn(sd, serveraddr);
+}
+
