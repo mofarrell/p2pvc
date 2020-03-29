@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.0)
 project(p2pvcv2)
 
-find_package(OpenCV REQUIRED)
-find_package(curses REQUIRED)
+option(USE_OPENCV "Use OpenCV.  Required for camera support" ON)
+option(USE_CURSES "Use ncurses.  Required for video rendering" ON)
 
 file(GLOB sources src/*.cpp)
 
@@ -14,9 +14,17 @@ endif()
 
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 
-include_directories(${OpenCV_INCLUDE_DIR})
-include_directories(${CURSES_INCLUDE_DIR})
-
 add_executable(p2pvcv2 ${sources})
-target_link_libraries(p2pvcv2 ${OpenCV_LIBS})
-target_link_libraries(p2pvcv2 ${CURSES_LIBRARIES})
+
+if (USE_OPENCV)
+    find_package(OpenCV REQUIRED)
+    target_include_directories(p2pvcv2 ${OpenCV_INCLUDE_DIR})
+    target_link_libraries(p2pvcv2 ${OpenCV_LIBS})
+    target_compile_definitions(p2pvcv2 USE_OPENCV=1)
+endif()
+if (USE_CURSES)
+    find_package(curses REQUIRED)
+    target_include_directories(p2pvcv2 ${CURSES_INCLUDE_DIR})
+    target_link_libraries(p2pvcv2 ${CURSES_LIBRARIES})
+    target_compile_definitions(p2pvcv2 USE_CURSES=1)
+endif()

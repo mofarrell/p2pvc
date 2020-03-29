@@ -1,8 +1,11 @@
 #include "network.h"
+#ifdef USE_OPENCV
 #include "video.h"
+#endif
 
 #include <iostream>
 
+#include <string.h>
 #include <unistd.h>
 
 int main(int argc, char *argv[]) {
@@ -10,6 +13,7 @@ int main(int argc, char *argv[]) {
   int port;
   if (argc == 3) {
     port = std::stoi(argv[2]);
+#ifdef USE_OPENCV
   } else if (argc == 2 && argv[1][0] == '-' && argv[1][1] == 'v') {
     try {
       Video v{};
@@ -25,6 +29,7 @@ int main(int argc, char *argv[]) {
       std::cerr << e.what() << "\n";
     }
     return 0;
+#endif
   } else if (argc == 2) {
     port = std::stoi(argv[1]);
   } else {
