@@ -11,7 +11,7 @@ Arch users can install `p2pvc-git` from [the AUR](https://aur.archlinux.org/pack
 
 ### Dependencies
 
-* OpenCV
+* OpenCV 2
 * PortAudio
 * ncurses
 
